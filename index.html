@@ -43,6 +43,8 @@
   .tab.tab-done.active .badge { background: #2e7d4f; color: #fff; }
   .tab.tab-bestel .badge { background: #fef3cd; color: #856404; }
   .tab.tab-bestel.active .badge { background: #c47b00; color: #fff; }
+  .tab.tab-werkbon .badge { background: #dbe9fb; color: #185fa5; }
+  .tab.tab-werkbon.active .badge { background: #185fa5; color: #fff; }
   .main { padding: 20px 24px; }
   .hint { font-size: 12px; color: #999; margin-bottom: 10px; }
   .section-hidden { display: none; }
@@ -60,6 +62,7 @@
   .badge-status { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
   .badge-status.besteld { background: #fef3cd; color: #856404; }
   .badge-status.ontvangen { background: #d4edda; color: #155724; }
+  .badge-status.terugkomen { background: #fde2e2; color: #b94040; }
   .actions { display: flex; gap: 5px; flex-wrap: wrap; }
   .btn-sm { padding: 4px 10px; border-radius: 5px; border: 0.5px solid #ccc; background: #fff; font-size: 12px; cursor: pointer; white-space: nowrap; }
   .btn-sm:hover { background: #f4f3ef; }
@@ -91,6 +94,22 @@
   input:focus, textarea:focus, select:focus { outline: 2px solid #1a1a18; outline-offset: 1px; border-color: transparent; }
   textarea { resize: vertical; min-height: 70px; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 600px) {
+    .modal { width: 100%; max-width: 100vw; max-height: 100vh; height: 100%; border-radius: 0; }
+    .modal-header { padding: 16px; }
+    .modal-header h2 { font-size: 17px; }
+    .modal-body { padding: 16px; gap: 16px; }
+    .modal-footer { padding: 16px; flex-direction: column-reverse; }
+    .modal-footer button { width: 100%; padding: 13px; font-size: 15px; }
+    label { font-size: 13px; margin-bottom: 6px; }
+    input[type=text], input[type=email], input[type=password], input[type=date], textarea, select { font-size: 16px; padding: 11px 12px; }
+    textarea { min-height: 90px; }
+    .field-row { grid-template-columns: 1fr; }
+    .toolbar, .tab-bar { padding-left: 12px; padding-right: 12px; }
+    .main { padding: 14px 12px; }
+    table { font-size: 12px; }
+    th, td { padding: 8px 10px; }
+  }
   @media print {
     body { background: #fff; min-height: unset; }
     #login-screen { display: none !important; }
@@ -150,6 +169,7 @@
     <div class="tab active" id="tab-open" onclick="switchTab('open')">Open <span class="badge" id="badge-open">0</span></div>
     <div class="tab tab-done" id="tab-done" onclick="switchTab('done')">Afgerond <span class="badge" id="badge-done">0</span></div>
     <div class="tab tab-bestel" id="tab-bestel" onclick="switchTab('bestel')">Bestellingen <span class="badge" id="badge-bestel">0</span></div>
+    <div class="tab tab-werkbon" id="tab-werkbon" onclick="switchTab('werkbon')">Werkbonnen <span class="badge" id="badge-werkbon">0</span></div>
   </div>
   <div class="main">
     <div id="section-open">
@@ -176,6 +196,17 @@
         <th style="width:160px">Leverancier</th><th>Onderdeel / omschrijving</th>
         <th style="width:150px">Voor klant</th><th style="width:110px">Status</th><th style="width:190px"></th>
       </tr></thead><tbody id="table-bestel"><tr><td colspan="5" class="loading">Laden...</td></tr></tbody></table>
+    </div>
+    <div id="section-werkbon" class="section-hidden">
+      <div class="print-header"><h2>HorecaConcurrent – Werkbonnen</h2><p id="print-date-werkbon"></p></div>
+      <table><thead><tr>
+        <th style="width:150px">Klant</th>
+        <th class="col-date" style="width:90px">Datum</th>
+        <th>Omschrijving</th>
+        <th>Gebruikte materialen</th>
+        <th style="width:170px">Vervolgactie</th>
+        <th style="width:160px"></th>
+      </tr></thead><tbody id="table-werkbon"><tr><td colspan="6" class="loading">Laden...</td></tr></tbody></table>
     </div>
   </div>
 </div>
@@ -222,6 +253,30 @@
   </div>
 </div>
 
+<!-- Modal: werkbon -->
+<div class="overlay" id="overlay-werkbon">
+  <div class="modal">
+    <div class="modal-header"><h2 id="modal-werkbon-title">Werkbon toevoegen</h2><button class="modal-close" onclick="closeModal('overlay-werkbon')">×</button></div>
+    <div class="modal-body">
+      <div><label>Klant</label><input type="text" id="w-klant" placeholder="Naam klant / bedrijf"></div>
+      <div><label>Datum</label><input type="date" id="w-datum"></div>
+      <div><label>Omschrijving</label><textarea id="w-omschrijving" placeholder="Wat is er gedaan?"></textarea></div>
+      <div><label>Gebruikte materialen</label><textarea id="w-materialen" placeholder="bijv. Waterklep 230V, 2x pakking"></textarea></div>
+      <div><label>Vervolgactie</label>
+        <select id="w-vervolgactie">
+          <option value="Terugkomen">Klus nog niet afgerond (terugkomen)</option>
+          <option value="Geen">Geen vervolgactie</option>
+          <option value="Bestellen">Materialen bestellen</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button onclick="closeModal('overlay-werkbon')">Annuleren</button>
+      <button class="primary" onclick="saveWerkbon()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
@@ -240,8 +295,8 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-let openData = [], doneData = [], bestelData = [];
-let editId = null, bestelEditId = null, dragSrcIdx = null;
+let openData = [], doneData = [], bestelData = [], werkbonData = [];
+let editId = null, bestelEditId = null, werkbonEditId = null, dragSrcIdx = null;
 let activeTab = 'open';
 let unsubscribers = [];
 
@@ -302,6 +357,11 @@ function startListeners() {
     bestelData = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderBestel(); updateBadges();
   }));
+  unsubscribers.push(onSnapshot(collection(db,'werkbonnen'), snap => {
+    werkbonData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    werkbonData.sort((a,b)=>(b.createdTs??0)-(a.createdTs??0));
+    renderWerkbon(); updateBadges();
+  }));
 }
 
 function setSyncStatus(state) {
@@ -316,19 +376,22 @@ function updateBadges() {
   document.getElementById('badge-open').textContent   = openData.length;
   document.getElementById('badge-done').textContent   = doneData.length;
   document.getElementById('badge-bestel').textContent = bestelData.length;
+  document.getElementById('badge-werkbon').textContent = werkbonData.length;
 }
 
 window.switchTab = function(tab) {
   activeTab = tab;
-  ['open','done','bestel'].forEach(t => {
+  ['open','done','bestel','werkbon'].forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('active', t===tab);
     document.getElementById('section-'+t).classList.toggle('section-hidden', t!==tab);
   });
-  document.getElementById('btn-add').textContent = tab==='bestel'?'+ Bestelling':'+ Toevoegen';
+  document.getElementById('btn-add').textContent = tab==='bestel'?'+ Bestelling':tab==='werkbon'?'+ Werkbon':'+ Toevoegen';
 };
 
 window.handleAdd = function() {
-  if (activeTab==='bestel') openBestelModal(); else openAddModal();
+  if (activeTab==='bestel') openBestelModal();
+  else if (activeTab==='werkbon') openWerkbonModal();
+  else openAddModal();
 };
 
 // ── OPEN ──────────────────────────────────────────────
@@ -446,6 +509,38 @@ window.deleteBestel = async function(id) {
 };
 window.editBestel = function(id) { openBestelModal(id); };
 
+// ── WERKBONNEN ──────────────────────────────────────────
+function vervolgLabel(v) {
+  return v==='Terugkomen' ? 'Terugkomen' : v==='Bestellen' ? 'Materialen bestellen' : 'Geen vervolgactie';
+}
+function vervolgClass(v) {
+  return v==='Terugkomen' ? 'terugkomen' : v==='Bestellen' ? 'besteld' : 'ontvangen';
+}
+
+function renderWerkbon() {
+  const body = document.getElementById('table-werkbon');
+  if (!werkbonData.length) { body.innerHTML=`<tr><td colspan="6" class="empty">Nog geen werkbonnen.</td></tr>`; return; }
+  body.innerHTML = werkbonData.map(r=>`
+    <tr class="bestel-row">
+      <td><strong>${r.klant}</strong></td>
+      <td class="row-date col-date"><span class="date-full">${formatDate(r.datum||'')}</span><span class="date-short">${formatDateShort(r.datum||'')}</span></td>
+      <td style="font-size:12px;">${r.omschrijving}</td>
+      <td style="font-size:12px;">${r.materialen||'–'}</td>
+      <td><span class="badge-status ${vervolgClass(r.vervolgactie)}">${vervolgLabel(r.vervolgactie)}</span></td>
+      <td><div class="actions">
+        <button class="btn-sm edit" onclick="editWerkbon('${r.id}')">Bewerken</button>
+        <button class="btn-sm del" onclick="deleteWerkbon('${r.id}')">Verwijder</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+window.editWerkbon = function(id) { openWerkbonModal(id); };
+window.deleteWerkbon = async function(id) {
+  if (!confirm('Werkbon verwijderen?')) return;
+  setSyncStatus('syncing');
+  try { await deleteDoc(doc(db,'werkbonnen',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
+};
+
 // ── MODALS ────────────────────────────────────────────
 function openAddModal(id) {
   editId = id||null;
@@ -508,14 +603,53 @@ window.saveBestel = async function() {
   closeModal('overlay-bestel');
 };
 
+function openWerkbonModal(id) {
+  werkbonEditId = id||null;
+  document.getElementById('modal-werkbon-title').textContent = werkbonEditId?'Werkbon bewerken':'Werkbon toevoegen';
+  if (werkbonEditId) {
+    const r = werkbonData.find(r=>r.id===werkbonEditId);
+    if (r) {
+      document.getElementById('w-klant').value        = r.klant        || '';
+      document.getElementById('w-datum').value        = r.datum        || todayISO();
+      document.getElementById('w-omschrijving').value = r.omschrijving || '';
+      document.getElementById('w-materialen').value   = r.materialen   || '';
+      document.getElementById('w-vervolgactie').value = r.vervolgactie || 'Geen';
+    }
+  } else {
+    document.getElementById('w-datum').value = todayISO();
+    ['w-klant','w-omschrijving','w-materialen'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('w-vervolgactie').value = 'Geen';
+  }
+  document.getElementById('overlay-werkbon').classList.add('open');
+  setTimeout(()=>document.getElementById('w-klant').focus(),100);
+}
+
+window.saveWerkbon = async function() {
+  const entry = {
+    klant:        document.getElementById('w-klant').value.trim(),
+    datum:        document.getElementById('w-datum').value || todayISO(),
+    omschrijving: document.getElementById('w-omschrijving').value.trim(),
+    materialen:   document.getElementById('w-materialen').value.trim(),
+    vervolgactie: document.getElementById('w-vervolgactie').value,
+  };
+  if (!entry.klant||!entry.omschrijving) { alert('Vul klant en omschrijving in.'); return; }
+  setSyncStatus('syncing');
+  try {
+    if (werkbonEditId) { await updateDoc(doc(db,'werkbonnen',werkbonEditId),entry); }
+    else { entry.createdTs=Date.now(); await addDoc(collection(db,'werkbonnen'),entry); }
+    setSyncStatus('ok');
+  } catch(e) { setSyncStatus('error'); return; }
+  closeModal('overlay-werkbon');
+};
+
 window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
-['overlay-add','overlay-bestel'].forEach(id => {
+['overlay-add','overlay-bestel','overlay-werkbon'].forEach(id => {
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)window.closeModal(id);});
 });
 
 window.printList = function() {
   const d = new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
-  ['open','done','bestel'].forEach(t=>{const el=document.getElementById('print-date-'+t);if(el)el.textContent=`Afgedrukt op ${d}`;});
+  ['open','done','bestel','werkbon'].forEach(t=>{const el=document.getElementById('print-date-'+t);if(el)el.textContent=`Afgedrukt op ${d}`;});
   window.print();
 };
 </script>
