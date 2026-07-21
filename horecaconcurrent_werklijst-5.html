@@ -69,7 +69,6 @@
   .btn-sm.del:hover { background: #fff5f5; }
   .btn-sm.edit { border-color: #b0c4de; color: #185fa5; }
   .btn-sm.edit:hover { background: #e6f1fb; }
-  .btn-sm.up { color: #555; font-size: 13px; padding: 3px 8px; }
   .btn-sm.restore { border-color: #b0c4de; color: #185fa5; }
   .btn-sm.restore:hover { background: #e6f1fb; }
   .btn-sm.ontvangen { border-color: #a0c8a0; color: #2e7d4f; }
@@ -150,7 +149,7 @@
   <div class="main">
     <div id="section-open">
       <div class="print-header"><h2>HorecaConcurrent – Nog terug naar klant</h2><p id="print-date-open"></p></div>
-      <p class="hint">☰ Sleep een rij om de volgorde te wijzigen, of gebruik ↑ om één stap omhoog te zetten.</p>
+      <p class="hint">☰ Sleep een rij om de volgorde te wijzigen.</p>
       <table><thead><tr>
         <th style="width:20px"></th>
         <th style="width:90px">Datum</th>
@@ -335,7 +334,6 @@ function renderOpen() {
       </td>
       <td style="font-size:12px;">${r.todo}</td>
       <td><div class="actions">
-        ${i>0?`<button class="btn-sm up" onclick="moveUp(${i})">↑</button>`:''}
         <button class="btn-sm done" onclick="markDone('${r.id}')">Afgerond</button>
         <button class="btn-sm edit" onclick="editEntry('${r.id}')">Bewerken</button>
         <button class="btn-sm del" onclick="deleteEntry('${r.id}')">Verwijder</button>
@@ -358,13 +356,6 @@ function renderOpen() {
     });
   });
 }
-
-window.moveUp = async function(idx) {
-  if (idx===0) return;
-  setSyncStatus('syncing');
-  try { await Promise.all([updateDoc(doc(db,'open',openData[idx-1].id),{order:idx}),updateDoc(doc(db,'open',openData[idx].id),{order:idx-1})]); setSyncStatus('ok'); }
-  catch(e) { setSyncStatus('error'); }
-};
 
 window.markDone = async function(id) {
   const item = openData.find(r=>r.id===id); if(!item) return;
