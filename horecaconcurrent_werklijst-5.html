@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>HorecaConcurrent – Werklijst</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f3ef; color: #1a1a18; min-height: 100vh; }
+  #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f4f3ef; }
+  .login-box { background: #fff; border-radius: 12px; border: 0.5px solid #e0ddd8; padding: 40px 36px; width: 340px; max-width: 95vw; box-shadow: 0 4px 24px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 18px; }
+  .login-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1a1a18; text-align: center; }
+  .login-logo span { display: block; font-size: 11px; font-weight: 400; color: #888; letter-spacing: 0.04em; margin-top: 3px; }
+  .login-box label { font-size: 12px; font-weight: 600; color: #444; display: block; margin-bottom: 4px; }
+  .login-box input { width: 100%; padding: 9px 12px; border-radius: 7px; border: 0.5px solid #ccc; font-size: 14px; font-family: inherit; }
+  .login-box input:focus { outline: 2px solid #1a1a18; border-color: transparent; }
+  .login-btn { width: 100%; padding: 10px; border-radius: 7px; background: #1a1a18; color: #fff; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .login-btn:hover { background: #333; }
+  .login-btn:disabled { background: #888; cursor: not-allowed; }
+  .login-error { font-size: 12px; color: #b94040; text-align: center; display: none; }
+  #app-screen { display: none; }
+  header { background: #1a1a18; color: #f4f3ef; padding: 13px 24px; display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .sync-status { font-size: 11px; color: #888; display: flex; align-items: center; gap: 5px; }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #2e7d4f; display: inline-block; }
+  .sync-dot.syncing { background: #c47b00; animation: pulse 1s infinite; }
+  .sync-dot.error { background: #b94040; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .logout-btn { font-size: 12px; color: #888; background: none; border: none; cursor: pointer; padding: 3px 8px; border-radius: 4px; }
+  .logout-btn:hover { color: #fff; background: #333; }
+  .toolbar { background: #fff; border-bottom: 0.5px solid #ddd; padding: 10px 24px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .toolbar button { padding: 7px 14px; border-radius: 6px; border: 0.5px solid #ccc; background: #fff; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .toolbar button:hover { background: #f4f3ef; }
+  .toolbar button.primary { background: #1a1a18; color: #fff; border-color: #1a1a18; }
+  .toolbar button.primary:hover { background: #333; }
+  .spacer { flex: 1; }
+  .tab-bar { background: #fff; border-bottom: 0.5px solid #ddd; padding: 0 24px; display: flex; }
+  .tab { padding: 11px 20px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; color: #888; user-select: none; }
+  .tab.active { color: #1a1a18; font-weight: 600; border-bottom-color: #1a1a18; }
+  .tab .badge { display: inline-block; border-radius: 10px; font-size: 11px; padding: 1px 7px; margin-left: 6px; background: #e0ddd8; color: #555; }
+  .tab.active .badge { background: #1a1a18; color: #fff; }
+  .tab.tab-done .badge { background: #d4edda; color: #155724; }
+  .tab.tab-done.active .badge { background: #2e7d4f; color: #fff; }
+  .tab.tab-bestel .badge { background: #fef3cd; color: #856404; }
+  .tab.tab-bestel.active .badge { background: #c47b00; color: #fff; }
+  .main { padding: 20px 24px; }
+  .hint { font-size: 12px; color: #999; margin-bottom: 10px; }
+  .section-hidden { display: none; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; border: 0.5px solid #e0ddd8; overflow: hidden; font-size: 13px; }
+  thead { background: #f4f3ef; }
+  th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #666; border-bottom: 0.5px solid #e0ddd8; }
+  td { border-bottom: 0.5px solid #f0ede8; vertical-align: top; padding: 10px 16px; }
+  tr:last-child td { border-bottom: none; }
+  tr.data-row { cursor: grab; }
+  tr.data-row:hover td { background: #faf9f7; }
+  tr.done-row:hover td { background: #f6fff6; }
+  tr.bestel-row:hover td { background: #fffdf5; }
+  tr.dragging td { background: #e8f0fe !important; opacity: 0.7; }
+  tr.drag-over td { border-top: 2px solid #1a1a18 !important; }
+  .badge-status { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .badge-status.besteld { background: #fef3cd; color: #856404; }
+  .badge-status.ontvangen { background: #d4edda; color: #155724; }
+  .actions { display: flex; gap: 5px; flex-wrap: wrap; }
+  .btn-sm { padding: 4px 10px; border-radius: 5px; border: 0.5px solid #ccc; background: #fff; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .btn-sm:hover { background: #f4f3ef; }
+  .btn-sm.done { border-color: #a0c8a0; color: #2e7d4f; }
+  .btn-sm.done:hover { background: #eaf3ea; }
+  .btn-sm.del { border-color: #e0a0a0; color: #b94040; }
+  .btn-sm.del:hover { background: #fff5f5; }
+  .btn-sm.edit { border-color: #b0c4de; color: #185fa5; }
+  .btn-sm.edit:hover { background: #e6f1fb; }
+  .btn-sm.up { color: #555; font-size: 13px; padding: 3px 8px; }
+  .btn-sm.restore { border-color: #b0c4de; color: #185fa5; }
+  .btn-sm.restore:hover { background: #e6f1fb; }
+  .btn-sm.ontvangen { border-color: #a0c8a0; color: #2e7d4f; }
+  .btn-sm.ontvangen:hover { background: #eaf3ea; }
+  .location { font-size: 11px; color: #555; margin-top: 2px; }
+  .note { font-size: 11px; color: #c47b00; margin-top: 3px; font-style: italic; }
+  .row-date { font-size: 11px; color: #888; white-space: nowrap; }
+  .empty { text-align: center; padding: 48px; color: #bbb; font-size: 14px; }
+  .loading { text-align: center; padding: 48px; color: #aaa; font-size: 13px; }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.38); z-index: 100; align-items: center; justify-content: center; }
+  .overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 10px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.16); }
+  .modal-header { padding: 17px 20px 13px; border-bottom: 0.5px solid #e0ddd8; display: flex; justify-content: space-between; align-items: center; }
+  .modal-header h2 { font-size: 15px; font-weight: 600; }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
+  .modal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 13px; }
+  .modal-footer { padding: 13px 20px; border-top: 0.5px solid #e0ddd8; display: flex; justify-content: flex-end; gap: 8px; }
+  label { font-size: 12px; font-weight: 600; color: #444; display: block; margin-bottom: 4px; }
+  input[type=text], input[type=email], input[type=password], input[type=date], textarea, select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 0.5px solid #ccc; font-size: 13px; font-family: inherit; background: #fff; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid #1a1a18; outline-offset: 1px; border-color: transparent; }
+  textarea { resize: vertical; min-height: 70px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media print {
+    body { background: #fff; min-height: unset; }
+    #login-screen { display: none !important; }
+    header, .toolbar, .tab-bar, .actions, .hint, .overlay { display: none !important; }
+    .main { padding: 0; }
+    .print-header { display: block !important; margin-bottom: 14px; }
+    .section-hidden { display: none !important; }
+    table { border: 1px solid #ccc; font-size: 11px; }
+    th, td { padding: 7px 10px; }
+    th:last-child, td:last-child { display: none; }
+    html, body { height: auto !important; overflow: visible !important; }
+  }
+  .print-header { display: none; }
+  .print-header h2 { font-size: 16px; font-weight: 700; }
+  .print-header p { font-size: 12px; color: #555; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">HorecaConcurrent<span>Werklijst & Bestellingen</span></div>
+    <div>
+      <label>E-mailadres</label>
+      <input type="email" id="login-email" placeholder="info@horecaconcurrent.com" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div>
+      <label>Wachtwoord</label>
+      <input type="password" id="login-pw" placeholder="Wachtwoord" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Inloggen</button>
+    <div class="login-error" id="login-error">Onjuiste gegevens. Probeer opnieuw.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <header>
+    <h1>HorecaConcurrent — Werklijst</h1>
+    <div class="header-right">
+      <div class="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Verbonden</span></div>
+      <button class="logout-btn" onclick="doLogout()">Uitloggen</button>
+    </div>
+  </header>
+  <div class="toolbar">
+    <button class="primary" id="btn-add" onclick="handleAdd()">+ Toevoegen</button>
+    <span class="spacer"></span>
+    <button onclick="printList()">Afdrukken</button>
+  </div>
+  <div class="tab-bar">
+    <div class="tab active" id="tab-open" onclick="switchTab('open')">Open <span class="badge" id="badge-open">0</span></div>
+    <div class="tab tab-done" id="tab-done" onclick="switchTab('done')">Afgerond <span class="badge" id="badge-done">0</span></div>
+    <div class="tab tab-bestel" id="tab-bestel" onclick="switchTab('bestel')">Bestellingen <span class="badge" id="badge-bestel">0</span></div>
+  </div>
+  <div class="main">
+    <div id="section-open">
+      <div class="print-header"><h2>HorecaConcurrent – Nog terug naar klant</h2><p id="print-date-open"></p></div>
+      <p class="hint">☰ Sleep een rij om de volgorde te wijzigen, of gebruik ↑ om één stap omhoog te zetten.</p>
+      <table><thead><tr>
+        <th style="width:20px"></th>
+        <th style="width:90px">Datum</th>
+        <th style="width:160px">Klant</th>
+        <th>Wat moet nog gedaan worden</th>
+        <th style="width:200px"></th>
+      </tr></thead><tbody id="table-open"><tr><td colspan="5" class="loading">Laden...</td></tr></tbody></table>
+    </div>
+    <div id="section-done" class="section-hidden">
+      <div class="print-header"><h2>HorecaConcurrent – Afgeronde werkzaamheden</h2><p id="print-date-done"></p></div>
+      <table><thead><tr>
+        <th style="width:170px">Klant</th><th>Werkzaamheden</th>
+        <th style="width:95px">Afgerond</th><th style="width:160px"></th>
+      </tr></thead><tbody id="table-done"><tr><td colspan="4" class="loading">Laden...</td></tr></tbody></table>
+    </div>
+    <div id="section-bestel" class="section-hidden">
+      <div class="print-header"><h2>HorecaConcurrent – Bestellingen</h2><p id="print-date-bestel"></p></div>
+      <table><thead><tr>
+        <th style="width:160px">Leverancier</th><th>Onderdeel / omschrijving</th>
+        <th style="width:150px">Voor klant</th><th style="width:110px">Status</th><th style="width:190px"></th>
+      </tr></thead><tbody id="table-bestel"><tr><td colspan="5" class="loading">Laden...</td></tr></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: werklijst -->
+<div class="overlay" id="overlay-add">
+  <div class="modal">
+    <div class="modal-header"><h2 id="modal-add-title">Toevoegen</h2><button class="modal-close" onclick="closeModal('overlay-add')">×</button></div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div><label>Datum melding</label><input type="date" id="f-datum"></div>
+        <div><label>Klant</label><input type="text" id="f-klant" placeholder="Naam klant / bedrijf"></div>
+      </div>
+      <div><label>Locatie (optioneel)</label><input type="text" id="f-locatie" placeholder="bijv. Den Haag"></div>
+      <div><label>Wat moet nog gedaan worden</label><textarea id="f-todo" placeholder="Omschrijving werkzaamheden, inclusief onderdelen..."></textarea></div>
+      <div><label>Aandachtspunt (optioneel)</label><input type="text" id="f-note" placeholder="bijv. meerdere vestigingen, maandag uitvoeren"></div>
+    </div>
+    <div class="modal-footer">
+      <button onclick="closeModal('overlay-add')">Annuleren</button>
+      <button class="primary" onclick="saveEntry()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: bestelling -->
+<div class="overlay" id="overlay-bestel">
+  <div class="modal">
+    <div class="modal-header"><h2 id="modal-bestel-title">Bestelling toevoegen</h2><button class="modal-close" onclick="closeModal('overlay-bestel')">×</button></div>
+    <div class="modal-body">
+      <div><label>Leverancier / bedrijf</label><input type="text" id="b-leverancier" placeholder="bijv. Rational Parts, Frigomec, Hobart"></div>
+      <div><label>Onderdeel / omschrijving</label><textarea id="b-onderdeel" placeholder="bijv. Waterklep 230V art.12345"></textarea></div>
+      <div><label>Voor klant</label><input type="text" id="b-klant" placeholder="Naam klant waar het onderdeel voor is"></div>
+      <div><label>Status</label>
+        <select id="b-status">
+          <option value="Besteld">Besteld – wachten op levering</option>
+          <option value="Ontvangen">Ontvangen – klaar voor montage</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button onclick="closeModal('overlay-bestel')">Annuleren</button>
+      <button class="primary" onclick="saveBestel()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDdKth1b7FF-3lSojWmFEVlhi66qd6Pnfc",
+  authDomain: "horecaconcurrent-200d5.firebaseapp.com",
+  projectId: "horecaconcurrent-200d5",
+  storageBucket: "horecaconcurrent-200d5.firebasestorage.app",
+  messagingSenderId: "358146591271",
+  appId: "1:358146591271:web:3518f899825a25706f9c02"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let openData = [], doneData = [], bestelData = [];
+let editId = null, bestelEditId = null, dragSrcIdx = null;
+let activeTab = 'open';
+let unsubscribers = [];
+
+function todayISO() { return new Date().toISOString().slice(0,10); }
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}-${m}-${y}`;
+}
+
+// ── Auth ───────────────────────────────────────────────
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    startListeners();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+    unsubscribers.forEach(u=>u()); unsubscribers = [];
+  }
+});
+
+window.doLogin = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-pw').value;
+  const btn   = document.getElementById('login-btn');
+  const err   = document.getElementById('login-error');
+  err.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Inloggen...';
+  try { await signInWithEmailAndPassword(auth, email, pw); }
+  catch(e) { err.style.display='block'; document.getElementById('login-pw').value=''; document.getElementById('login-pw').focus(); }
+  btn.disabled = false; btn.textContent = 'Inloggen';
+};
+
+window.doLogout = async function() { await signOut(auth); };
+
+// ── Listeners ──────────────────────────────────────────
+function startListeners() {
+  unsubscribers.push(onSnapshot(collection(db,'open'), snap => {
+    openData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    openData.sort((a,b)=>(a.order??0)-(b.order??0));
+    renderOpen(); updateBadges();
+  }));
+  unsubscribers.push(onSnapshot(collection(db,'done'), snap => {
+    doneData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    doneData.sort((a,b)=>(b.doneTs??0)-(a.doneTs??0));
+    renderDone(); updateBadges();
+  }));
+  unsubscribers.push(onSnapshot(collection(db,'bestellingen'), snap => {
+    bestelData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderBestel(); updateBadges();
+  }));
+}
+
+function setSyncStatus(state) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if (!dot) return;
+  dot.className = 'sync-dot'+(state==='syncing'?' syncing':state==='error'?' error':'');
+  lbl.textContent = state==='syncing'?'Opslaan...':state==='error'?'Fout':'Verbonden';
+}
+
+function updateBadges() {
+  document.getElementById('badge-open').textContent   = openData.length;
+  document.getElementById('badge-done').textContent   = doneData.length;
+  document.getElementById('badge-bestel').textContent = bestelData.length;
+}
+
+window.switchTab = function(tab) {
+  activeTab = tab;
+  ['open','done','bestel'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('section-'+t).classList.toggle('section-hidden', t!==tab);
+  });
+  document.getElementById('btn-add').textContent = tab==='bestel'?'+ Bestelling':'+ Toevoegen';
+};
+
+window.handleAdd = function() {
+  if (activeTab==='bestel') openBestelModal(); else openAddModal();
+};
+
+// ── OPEN ──────────────────────────────────────────────
+function renderOpen() {
+  const body = document.getElementById('table-open');
+  if (!openData.length) { body.innerHTML=`<tr><td colspan="5" class="empty">Geen openstaande werkzaamheden 🎉</td></tr>`; return; }
+  body.innerHTML = openData.map((r,i) => `
+    <tr class="data-row" draggable="true" data-idx="${i}" data-id="${r.id}">
+      <td style="padding:10px 8px;color:#ccc;font-size:18px;cursor:grab;text-align:center;user-select:none;">⠿</td>
+      <td class="row-date">${formatDate(r.datum||'')}</td>
+      <td><strong>${r.klant}</strong>
+        ${r.locatie?`<div class="location">📍 ${r.locatie}</div>`:''}
+        ${r.note?`<div class="note">⚠️ ${r.note}</div>`:''}
+      </td>
+      <td style="font-size:12px;">${r.todo}</td>
+      <td><div class="actions">
+        ${i>0?`<button class="btn-sm up" onclick="moveUp(${i})">↑</button>`:''}
+        <button class="btn-sm done" onclick="markDone('${r.id}')">Afgerond</button>
+        <button class="btn-sm edit" onclick="editEntry('${r.id}')">Bewerken</button>
+        <button class="btn-sm del" onclick="deleteEntry('${r.id}')">Verwijder</button>
+      </div></td>
+    </tr>`).join('');
+
+  body.querySelectorAll('tr.data-row').forEach(row => {
+    row.addEventListener('dragstart', e => { dragSrcIdx=parseInt(row.dataset.idx); row.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); body.querySelectorAll('tr').forEach(r=>r.classList.remove('drag-over')); });
+    row.addEventListener('dragover', e => { e.preventDefault(); body.querySelectorAll('tr').forEach(r=>r.classList.remove('drag-over')); row.classList.add('drag-over'); });
+    row.addEventListener('drop', async e => {
+      e.preventDefault();
+      const ti = parseInt(row.dataset.idx);
+      if (dragSrcIdx===null||dragSrcIdx===ti) return;
+      const moved = openData.splice(dragSrcIdx,1)[0];
+      openData.splice(ti,0,moved);
+      setSyncStatus('syncing');
+      try { await Promise.all(openData.map((item,idx)=>updateDoc(doc(db,'open',item.id),{order:idx}))); setSyncStatus('ok'); }
+      catch(e) { setSyncStatus('error'); }
+    });
+  });
+}
+
+window.moveUp = async function(idx) {
+  if (idx===0) return;
+  setSyncStatus('syncing');
+  try { await Promise.all([updateDoc(doc(db,'open',openData[idx-1].id),{order:idx}),updateDoc(doc(db,'open',openData[idx].id),{order:idx-1})]); setSyncStatus('ok'); }
+  catch(e) { setSyncStatus('error'); }
+};
+
+window.markDone = async function(id) {
+  const item = openData.find(r=>r.id===id); if(!item) return;
+  setSyncStatus('syncing');
+  try {
+    await addDoc(collection(db,'done'),{klant:item.klant,locatie:item.locatie||'',todo:item.todo,note:item.note||'',datum:item.datum||'',doneDate:new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'short',year:'numeric'}),doneTs:Date.now()});
+    await deleteDoc(doc(db,'open',id)); setSyncStatus('ok');
+  } catch(e) { setSyncStatus('error'); }
+};
+
+window.deleteEntry = async function(id) {
+  if (!confirm('Verwijderen?')) return;
+  setSyncStatus('syncing');
+  try { await deleteDoc(doc(db,'open',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
+};
+window.editEntry = function(id) { openAddModal(id); };
+
+// ── AFGEROND ──────────────────────────────────────────
+function renderDone() {
+  const body = document.getElementById('table-done');
+  if (!doneData.length) { body.innerHTML=`<tr><td colspan="4" class="empty">Nog niets afgerond.</td></tr>`; return; }
+  body.innerHTML = doneData.map(r=>`
+    <tr class="done-row">
+      <td><strong>${r.klant}</strong>
+        ${r.locatie?`<div class="location">📍 ${r.locatie}</div>`:''}
+        ${r.datum?`<div class="location">📅 ${formatDate(r.datum)}</div>`:''}
+        ${r.note?`<div class="note">⚠️ ${r.note}</div>`:''}
+      </td>
+      <td style="font-size:12px;color:#555;">${r.todo}</td>
+      <td style="font-size:11px;color:#2e7d4f;white-space:nowrap;">${r.doneDate||''}</td>
+      <td><div class="actions">
+        <button class="btn-sm restore" onclick="restoreEntry('${r.id}')">↩ Terugzetten</button>
+        <button class="btn-sm del" onclick="deleteDone('${r.id}')">Verwijder</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+window.restoreEntry = async function(id) {
+  const item = doneData.find(r=>r.id===id); if(!item) return;
+  setSyncStatus('syncing');
+  try { await addDoc(collection(db,'open'),{klant:item.klant,locatie:item.locatie||'',todo:item.todo,note:item.note||'',datum:item.datum||'',order:openData.length}); await deleteDoc(doc(db,'done',id)); setSyncStatus('ok'); }
+  catch(e) { setSyncStatus('error'); }
+};
+
+window.deleteDone = async function(id) {
+  if (!confirm('Definitief verwijderen?')) return;
+  setSyncStatus('syncing');
+  try { await deleteDoc(doc(db,'done',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
+};
+
+// ── BESTELLINGEN ──────────────────────────────────────
+function renderBestel() {
+  const body = document.getElementById('table-bestel');
+  if (!bestelData.length) { body.innerHTML=`<tr><td colspan="5" class="empty">Geen openstaande bestellingen.</td></tr>`; return; }
+  body.innerHTML = bestelData.map(r=>`
+    <tr class="bestel-row">
+      <td><strong>${r.leverancier}</strong></td>
+      <td style="font-size:12px;">${r.onderdeel}</td>
+      <td style="font-size:12px;">${r.klant}</td>
+      <td><span class="badge-status ${r.status==='Ontvangen'?'ontvangen':'besteld'}">${r.status}</span></td>
+      <td><div class="actions">
+        ${r.status==='Besteld'?`<button class="btn-sm ontvangen" onclick="markOntvangen('${r.id}')">✓ Ontvangen</button>`:''}
+        <button class="btn-sm edit" onclick="editBestel('${r.id}')">Bewerken</button>
+        <button class="btn-sm del" onclick="deleteBestel('${r.id}')">Verwijder</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+window.markOntvangen = async function(id) {
+  setSyncStatus('syncing');
+  try { await updateDoc(doc(db,'bestellingen',id),{status:'Ontvangen'}); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
+};
+window.deleteBestel = async function(id) {
+  if (!confirm('Bestelling verwijderen?')) return;
+  setSyncStatus('syncing');
+  try { await deleteDoc(doc(db,'bestellingen',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
+};
+window.editBestel = function(id) { openBestelModal(id); };
+
+// ── MODALS ────────────────────────────────────────────
+function openAddModal(id) {
+  editId = id||null;
+  document.getElementById('modal-add-title').textContent = editId?'Bewerken':'Toevoegen';
+  if (editId) {
+    const r = openData.find(r=>r.id===editId);
+    if (r) {
+      document.getElementById('f-datum').value   = r.datum   || todayISO();
+      document.getElementById('f-klant').value   = r.klant   || '';
+      document.getElementById('f-locatie').value = r.locatie || '';
+      document.getElementById('f-todo').value    = r.todo    || '';
+      document.getElementById('f-note').value    = r.note    || '';
+    }
+  } else {
+    document.getElementById('f-datum').value = todayISO();
+    ['f-klant','f-locatie','f-todo','f-note'].forEach(id=>document.getElementById(id).value='');
+  }
+  document.getElementById('overlay-add').classList.add('open');
+  setTimeout(()=>document.getElementById('f-klant').focus(),100);
+}
+
+window.saveEntry = async function() {
+  const entry = {
+    datum:   document.getElementById('f-datum').value   || todayISO(),
+    klant:   document.getElementById('f-klant').value.trim(),
+    locatie: document.getElementById('f-locatie').value.trim(),
+    todo:    document.getElementById('f-todo').value.trim(),
+    note:    document.getElementById('f-note').value.trim(),
+  };
+  if (!entry.klant||!entry.todo) { alert('Vul klant en omschrijving in.'); return; }
+  setSyncStatus('syncing');
+  try {
+    if (editId) { await updateDoc(doc(db,'open',editId),entry); }
+    else { entry.order=openData.length; await addDoc(collection(db,'open'),entry); }
+    setSyncStatus('ok');
+  } catch(e) { setSyncStatus('error'); return; }
+  closeModal('overlay-add');
+};
+
+function openBestelModal(id) {
+  bestelEditId = id||null;
+  document.getElementById('modal-bestel-title').textContent = bestelEditId?'Bestelling bewerken':'Bestelling toevoegen';
+  if (bestelEditId) {
+    const r = bestelData.find(r=>r.id===bestelEditId);
+    if (r) { document.getElementById('b-leverancier').value=r.leverancier||''; document.getElementById('b-onderdeel').value=r.onderdeel||''; document.getElementById('b-klant').value=r.klant||''; document.getElementById('b-status').value=r.status||'Besteld'; }
+  } else { ['b-leverancier','b-onderdeel','b-klant'].forEach(id=>document.getElementById(id).value=''); document.getElementById('b-status').value='Besteld'; }
+  document.getElementById('overlay-bestel').classList.add('open');
+  setTimeout(()=>document.getElementById('b-leverancier').focus(),100);
+}
+
+window.saveBestel = async function() {
+  const entry = {leverancier:document.getElementById('b-leverancier').value.trim(),onderdeel:document.getElementById('b-onderdeel').value.trim(),klant:document.getElementById('b-klant').value.trim(),status:document.getElementById('b-status').value};
+  if (!entry.leverancier||!entry.onderdeel||!entry.klant) { alert('Vul alle velden in.'); return; }
+  setSyncStatus('syncing');
+  try {
+    if (bestelEditId) { await updateDoc(doc(db,'bestellingen',bestelEditId),entry); }
+    else { await addDoc(collection(db,'bestellingen'),entry); }
+    setSyncStatus('ok');
+  } catch(e) { setSyncStatus('error'); return; }
+  closeModal('overlay-bestel');
+};
+
+window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
+['overlay-add','overlay-bestel'].forEach(id => {
+  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)window.closeModal(id);});
+});
+
+window.printList = function() {
+  const d = new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
+  ['open','done','bestel'].forEach(t=>{const el=document.getElementById('print-date-'+t);if(el)el.textContent=`Afgedrukt op ${d}`;});
+  window.print();
+};
+</script>
+</body>
+</html>
