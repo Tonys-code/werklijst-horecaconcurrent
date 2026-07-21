@@ -96,16 +96,21 @@
     #login-screen { display: none !important; }
     header, .toolbar, .tab-bar, .actions, .hint, .overlay { display: none !important; }
     .main { padding: 0; }
-    .print-header { display: block !important; margin-bottom: 14px; }
+    .print-header { display: flex !important; margin-bottom: 14px; }
     .section-hidden { display: none !important; }
     table { border: 1px solid #ccc; font-size: 11px; }
     th, td { padding: 7px 10px; }
     th:last-child, td:last-child { display: none; }
+    .print-hide-col { display: none !important; }
+    .col-date { width: 42px !important; font-size: 10px !important; }
+    .date-full { display: none !important; }
+    .date-short { display: inline !important; }
     html, body { height: auto !important; overflow: visible !important; }
   }
-  .print-header { display: none; }
+  .print-header { display: none; align-items: baseline; gap: 10px; }
   .print-header h2 { font-size: 16px; font-weight: 700; }
-  .print-header p { font-size: 12px; color: #555; margin-top: 3px; }
+  .print-header p { font-size: 12px; color: #555; }
+  .date-short { display: none; }
 </style>
 </head>
 <body>
@@ -148,12 +153,12 @@
   </div>
   <div class="main">
     <div id="section-open">
-      <div class="print-header"><h2>HorecaConcurrent – Nog terug naar klant</h2><p id="print-date-open"></p></div>
+      <div class="print-header"><h2>HorecaConcurrent – Openstaande werkzaamheden</h2><p id="print-date-open"></p></div>
       <p class="hint">☰ Sleep een rij om de volgorde te wijzigen.</p>
       <table><thead><tr>
-        <th style="width:20px"></th>
-        <th style="width:90px">Datum</th>
+        <th class="print-hide-col" style="width:20px"></th>
         <th style="width:160px">Klant</th>
+        <th class="col-date" style="width:90px">Datum</th>
         <th>Wat moet nog gedaan worden</th>
         <th style="width:200px"></th>
       </tr></thead><tbody id="table-open"><tr><td colspan="5" class="loading">Laden...</td></tr></tbody></table>
@@ -248,6 +253,12 @@ function formatDate(iso) {
   return `${d}-${m}-${y}`;
 }
 
+function formatDateShort(iso) {
+  if (!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}-${m}`;
+}
+
 // ── Auth ───────────────────────────────────────────────
 onAuthStateChanged(auth, user => {
   if (user) {
@@ -326,12 +337,12 @@ function renderOpen() {
   if (!openData.length) { body.innerHTML=`<tr><td colspan="5" class="empty">Geen openstaande werkzaamheden 🎉</td></tr>`; return; }
   body.innerHTML = openData.map((r,i) => `
     <tr class="data-row" draggable="true" data-idx="${i}" data-id="${r.id}">
-      <td style="padding:10px 8px;color:#ccc;font-size:18px;cursor:grab;text-align:center;user-select:none;">⠿</td>
-      <td class="row-date">${formatDate(r.datum||'')}</td>
+      <td class="print-hide-col" style="padding:10px 8px;color:#ccc;font-size:18px;cursor:grab;text-align:center;user-select:none;">⠿</td>
       <td><strong>${r.klant}</strong>
         ${r.locatie?`<div class="location">📍 ${r.locatie}</div>`:''}
         ${r.note?`<div class="note">⚠️ ${r.note}</div>`:''}
       </td>
+      <td class="row-date col-date"><span class="date-full">${formatDate(r.datum||'')}</span><span class="date-short">${formatDateShort(r.datum||'')}</span></td>
       <td style="font-size:12px;">${r.todo}</td>
       <td><div class="actions">
         <button class="btn-sm done" onclick="markDone('${r.id}')">Afgerond</button>
