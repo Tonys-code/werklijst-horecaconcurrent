@@ -45,6 +45,8 @@
   .tab.tab-bestel.active .badge { background: #c47b00; color: #fff; }
   .tab.tab-werkbon .badge { background: #dbe9fb; color: #185fa5; }
   .tab.tab-werkbon.active .badge { background: #185fa5; color: #fff; }
+  .tab.tab-verstuurd .badge { background: #d4edda; color: #155724; }
+  .tab.tab-verstuurd.active .badge { background: #2e7d4f; color: #fff; }
   .main { padding: 20px 24px; }
   .hint { font-size: 12px; color: #999; margin-bottom: 10px; }
   .section-hidden { display: none; }
@@ -170,6 +172,7 @@
     <div class="tab tab-done" id="tab-done" onclick="switchTab('done')">Afgerond <span class="badge" id="badge-done">0</span></div>
     <div class="tab tab-bestel" id="tab-bestel" onclick="switchTab('bestel')">Bestellingen <span class="badge" id="badge-bestel">0</span></div>
     <div class="tab tab-werkbon" id="tab-werkbon" onclick="switchTab('werkbon')">Werkbonnen <span class="badge" id="badge-werkbon">0</span></div>
+    <div class="tab tab-verstuurd" id="tab-verstuurd" onclick="switchTab('verstuurd')">Verstuurd <span class="badge" id="badge-verstuurd">0</span></div>
   </div>
   <div class="main">
     <div id="section-open">
@@ -207,6 +210,18 @@
         <th style="width:170px">Vervolgactie</th>
         <th style="width:160px"></th>
       </tr></thead><tbody id="table-werkbon"><tr><td colspan="6" class="loading">Laden...</td></tr></tbody></table>
+    </div>
+    <div id="section-verstuurd" class="section-hidden">
+      <div class="print-header"><h2>HorecaConcurrent – Verstuurde werkbonnen</h2><p id="print-date-verstuurd"></p></div>
+      <table><thead><tr>
+        <th style="width:150px">Klant</th>
+        <th class="col-date" style="width:90px">Datum</th>
+        <th>Omschrijving</th>
+        <th>Gebruikte materialen</th>
+        <th style="width:170px">Vervolgactie</th>
+        <th style="width:100px">Verstuurd</th>
+        <th style="width:160px"></th>
+      </tr></thead><tbody id="table-verstuurd"><tr><td colspan="7" class="loading">Laden...</td></tr></tbody></table>
     </div>
   </div>
 </div>
@@ -295,7 +310,7 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-let openData = [], doneData = [], bestelData = [], werkbonData = [];
+let openData = [], doneData = [], bestelData = [], werkbonData = [], verstuurdData = [];
 let editId = null, bestelEditId = null, werkbonEditId = null, dragSrcIdx = null;
 let activeTab = 'open';
 let unsubscribers = [];
@@ -362,6 +377,11 @@ function startListeners() {
     werkbonData.sort((a,b)=>(b.createdTs??0)-(a.createdTs??0));
     renderWerkbon(); updateBadges();
   }));
+  unsubscribers.push(onSnapshot(collection(db,'werkbonnen_verstuurd'), snap => {
+    verstuurdData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    verstuurdData.sort((a,b)=>(b.verstuurdTs??0)-(a.verstuurdTs??0));
+    renderVerstuurd(); updateBadges();
+  }));
 }
 
 function setSyncStatus(state) {
@@ -377,11 +397,12 @@ function updateBadges() {
   document.getElementById('badge-done').textContent   = doneData.length;
   document.getElementById('badge-bestel').textContent = bestelData.length;
   document.getElementById('badge-werkbon').textContent = werkbonData.length;
+  document.getElementById('badge-verstuurd').textContent = verstuurdData.length;
 }
 
 window.switchTab = function(tab) {
   activeTab = tab;
-  ['open','done','bestel','werkbon'].forEach(t => {
+  ['open','done','bestel','werkbon','verstuurd'].forEach(t => {
     document.getElementById('tab-'+t).classList.toggle('active', t===tab);
     document.getElementById('section-'+t).classList.toggle('section-hidden', t!==tab);
   });
@@ -528,6 +549,7 @@ function renderWerkbon() {
       <td style="font-size:12px;">${r.materialen||'–'}</td>
       <td><span class="badge-status ${vervolgClass(r.vervolgactie)}">${vervolgLabel(r.vervolgactie)}</span></td>
       <td><div class="actions">
+        <button class="btn-sm done" onclick="markWerkbonVerstuurd('${r.id}')">Verstuurd</button>
         <button class="btn-sm edit" onclick="editWerkbon('${r.id}')">Bewerken</button>
         <button class="btn-sm del" onclick="deleteWerkbon('${r.id}')">Verwijder</button>
       </div></td>
@@ -539,6 +561,49 @@ window.deleteWerkbon = async function(id) {
   if (!confirm('Werkbon verwijderen?')) return;
   setSyncStatus('syncing');
   try { await deleteDoc(doc(db,'werkbonnen',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
+};
+
+window.markWerkbonVerstuurd = async function(id) {
+  const item = werkbonData.find(r=>r.id===id); if(!item) return;
+  setSyncStatus('syncing');
+  try {
+    await addDoc(collection(db,'werkbonnen_verstuurd'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',vervolgactie:item.vervolgactie||'Geen',verstuurdDate:new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'short',year:'numeric'}),verstuurdTs:Date.now()});
+    await deleteDoc(doc(db,'werkbonnen',id)); setSyncStatus('ok');
+  } catch(e) { setSyncStatus('error'); }
+};
+
+// ── VERSTUURD ───────────────────────────────────────────
+function renderVerstuurd() {
+  const body = document.getElementById('table-verstuurd');
+  if (!verstuurdData.length) { body.innerHTML=`<tr><td colspan="7" class="empty">Nog geen verstuurde werkbonnen.</td></tr>`; return; }
+  body.innerHTML = verstuurdData.map(r=>`
+    <tr class="done-row">
+      <td><strong>${r.klant}</strong></td>
+      <td class="row-date col-date"><span class="date-full">${formatDate(r.datum||'')}</span><span class="date-short">${formatDateShort(r.datum||'')}</span></td>
+      <td style="font-size:12px;">${r.omschrijving}</td>
+      <td style="font-size:12px;">${r.materialen||'–'}</td>
+      <td><span class="badge-status ${vervolgClass(r.vervolgactie)}">${vervolgLabel(r.vervolgactie)}</span></td>
+      <td style="font-size:11px;color:#2e7d4f;white-space:nowrap;">${r.verstuurdDate||''}</td>
+      <td><div class="actions">
+        <button class="btn-sm restore" onclick="restoreWerkbon('${r.id}')">↩ Terugzetten</button>
+        <button class="btn-sm del" onclick="deleteVerstuurd('${r.id}')">Verwijder</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+window.restoreWerkbon = async function(id) {
+  const item = verstuurdData.find(r=>r.id===id); if(!item) return;
+  setSyncStatus('syncing');
+  try {
+    await addDoc(collection(db,'werkbonnen'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',vervolgactie:item.vervolgactie||'Geen',createdTs:Date.now()});
+    await deleteDoc(doc(db,'werkbonnen_verstuurd',id)); setSyncStatus('ok');
+  } catch(e) { setSyncStatus('error'); }
+};
+
+window.deleteVerstuurd = async function(id) {
+  if (!confirm('Definitief verwijderen?')) return;
+  setSyncStatus('syncing');
+  try { await deleteDoc(doc(db,'werkbonnen_verstuurd',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
 };
 
 // ── MODALS ────────────────────────────────────────────
@@ -649,7 +714,7 @@ window.closeModal = function(id) { document.getElementById(id).classList.remove(
 
 window.printList = function() {
   const d = new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
-  ['open','done','bestel','werkbon'].forEach(t=>{const el=document.getElementById('print-date-'+t);if(el)el.textContent=`Afgedrukt op ${d}`;});
+  ['open','done','bestel','werkbon','verstuurd'].forEach(t=>{const el=document.getElementById('print-date-'+t);if(el)el.textContent=`Afgedrukt op ${d}`;});
   window.print();
 };
 </script>
