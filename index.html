@@ -2,6 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HorecaConcurrent – Werklijst</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -65,6 +66,8 @@
   .badge-status.besteld { background: #fef3cd; color: #856404; }
   .badge-status.ontvangen { background: #d4edda; color: #155724; }
   .badge-status.terugkomen { background: #fde2e2; color: #b94040; }
+  .check-gemaakt { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; cursor: pointer; user-select: none; }
+  .check-gemaakt input { width: 15px; height: 15px; cursor: pointer; }
   .actions { display: flex; gap: 5px; flex-wrap: wrap; }
   .btn-sm { padding: 4px 10px; border-radius: 5px; border: 0.5px solid #ccc; background: #fff; font-size: 12px; cursor: pointer; white-space: nowrap; }
   .btn-sm:hover { background: #f4f3ef; }
@@ -100,6 +103,7 @@
     .modal { width: 100%; max-width: 100vw; max-height: 100vh; height: 100%; border-radius: 0; }
     .modal-header { padding: 16px; }
     .modal-header h2 { font-size: 17px; }
+    .modal-close { padding: 8px; font-size: 22px; }
     .modal-body { padding: 16px; gap: 16px; }
     .modal-footer { padding: 16px; flex-direction: column-reverse; }
     .modal-footer button { width: 100%; padding: 13px; font-size: 15px; }
@@ -208,8 +212,9 @@
         <th>Omschrijving</th>
         <th>Gebruikte materialen</th>
         <th style="width:170px">Vervolgactie</th>
+        <th style="width:110px">Status</th>
         <th style="width:160px"></th>
-      </tr></thead><tbody id="table-werkbon"><tr><td colspan="6" class="loading">Laden...</td></tr></tbody></table>
+      </tr></thead><tbody id="table-werkbon"><tr><td colspan="7" class="loading">Laden...</td></tr></tbody></table>
     </div>
     <div id="section-verstuurd" class="section-hidden">
       <div class="print-header"><h2>HorecaConcurrent – Verstuurde werkbonnen</h2><p id="print-date-verstuurd"></p></div>
@@ -540,7 +545,7 @@ function vervolgClass(v) {
 
 function renderWerkbon() {
   const body = document.getElementById('table-werkbon');
-  if (!werkbonData.length) { body.innerHTML=`<tr><td colspan="6" class="empty">Nog geen werkbonnen.</td></tr>`; return; }
+  if (!werkbonData.length) { body.innerHTML=`<tr><td colspan="7" class="empty">Nog geen werkbonnen.</td></tr>`; return; }
   body.innerHTML = werkbonData.map(r=>`
     <tr class="bestel-row">
       <td><strong>${r.klant}</strong></td>
@@ -548,6 +553,7 @@ function renderWerkbon() {
       <td style="font-size:12px;">${r.omschrijving}</td>
       <td style="font-size:12px;">${r.materialen||'–'}</td>
       <td><span class="badge-status ${vervolgClass(r.vervolgactie)}">${vervolgLabel(r.vervolgactie)}</span></td>
+      <td><label class="check-gemaakt"><input type="checkbox" ${r.gemaakt?'checked':''} onchange="toggleGemaakt('${r.id}',this.checked)"> Gemaakt</label></td>
       <td><div class="actions">
         <button class="btn-sm done" onclick="markWerkbonVerstuurd('${r.id}')">Verstuurd</button>
         <button class="btn-sm edit" onclick="editWerkbon('${r.id}')">Bewerken</button>
@@ -563,11 +569,16 @@ window.deleteWerkbon = async function(id) {
   try { await deleteDoc(doc(db,'werkbonnen',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
 };
 
+window.toggleGemaakt = async function(id, value) {
+  setSyncStatus('syncing');
+  try { await updateDoc(doc(db,'werkbonnen',id),{gemaakt:value}); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
+};
+
 window.markWerkbonVerstuurd = async function(id) {
   const item = werkbonData.find(r=>r.id===id); if(!item) return;
   setSyncStatus('syncing');
   try {
-    await addDoc(collection(db,'werkbonnen_verstuurd'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',vervolgactie:item.vervolgactie||'Geen',verstuurdDate:new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'short',year:'numeric'}),verstuurdTs:Date.now()});
+    await addDoc(collection(db,'werkbonnen_verstuurd'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',vervolgactie:item.vervolgactie||'Geen',gemaakt:item.gemaakt||false,verstuurdDate:new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'short',year:'numeric'}),verstuurdTs:Date.now()});
     await deleteDoc(doc(db,'werkbonnen',id)); setSyncStatus('ok');
   } catch(e) { setSyncStatus('error'); }
 };
@@ -595,7 +606,7 @@ window.restoreWerkbon = async function(id) {
   const item = verstuurdData.find(r=>r.id===id); if(!item) return;
   setSyncStatus('syncing');
   try {
-    await addDoc(collection(db,'werkbonnen'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',vervolgactie:item.vervolgactie||'Geen',createdTs:Date.now()});
+    await addDoc(collection(db,'werkbonnen'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',vervolgactie:item.vervolgactie||'Geen',gemaakt:item.gemaakt||false,createdTs:Date.now()});
     await deleteDoc(doc(db,'werkbonnen_verstuurd',id)); setSyncStatus('ok');
   } catch(e) { setSyncStatus('error'); }
 };
@@ -701,7 +712,7 @@ window.saveWerkbon = async function() {
   setSyncStatus('syncing');
   try {
     if (werkbonEditId) { await updateDoc(doc(db,'werkbonnen',werkbonEditId),entry); }
-    else { entry.createdTs=Date.now(); await addDoc(collection(db,'werkbonnen'),entry); }
+    else { entry.gemaakt=false; entry.createdTs=Date.now(); await addDoc(collection(db,'werkbonnen'),entry); }
     setSyncStatus('ok');
   } catch(e) { setSyncStatus('error'); return; }
   closeModal('overlay-werkbon');
