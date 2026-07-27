@@ -66,8 +66,16 @@
   .badge-status.besteld { background: #fef3cd; color: #856404; }
   .badge-status.ontvangen { background: #d4edda; color: #155724; }
   .badge-status.terugkomen { background: #fde2e2; color: #b94040; }
+  .badge-status.nogbestellen { background: #fde2e2; color: #b94040; }
   .check-gemaakt { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; cursor: pointer; user-select: none; }
   .check-gemaakt input { width: 15px; height: 15px; cursor: pointer; }
+  .check-list { display: flex; flex-wrap: wrap; gap: 10px 16px; }
+  .check-list label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 400; color: #1a1a18; cursor: pointer; user-select: none; margin-bottom: 0; }
+  .check-list input { width: 16px; height: 16px; cursor: pointer; }
+  .time-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .hours-display { font-size: 12px; color: #555; margin-top: 6px; }
+  .hours-display strong { color: #1a1a18; }
+  .field-hidden { display: none; }
   .actions { display: flex; gap: 5px; flex-wrap: wrap; }
   .btn-sm { padding: 4px 10px; border-radius: 5px; border: 0.5px solid #ccc; background: #fff; font-size: 12px; cursor: pointer; white-space: nowrap; }
   .btn-sm:hover { background: #f4f3ef; }
@@ -111,6 +119,7 @@
     input[type=text], input[type=email], input[type=password], input[type=date], textarea, select { font-size: 16px; padding: 11px 12px; }
     textarea { min-height: 90px; }
     .field-row { grid-template-columns: 1fr; }
+    .time-row { grid-template-columns: 1fr; gap: 10px; }
     .toolbar, .tab-bar { padding-left: 12px; padding-right: 12px; }
     .main { padding: 14px 12px; }
     table { font-size: 12px; }
@@ -261,6 +270,7 @@
       <div><label>Voor klant</label><input type="text" id="b-klant" placeholder="Naam klant waar het onderdeel voor is"></div>
       <div><label>Status</label>
         <select id="b-status">
+          <option value="Nog bestellen">Nog bestellen</option>
           <option value="Besteld">Besteld – wachten op levering</option>
           <option value="Ontvangen">Ontvangen – klaar voor montage</option>
         </select>
@@ -280,15 +290,36 @@
     <div class="modal-body">
       <div><label>Klant</label><input type="text" id="w-klant" placeholder="Naam klant / bedrijf"></div>
       <div><label>Datum</label><input type="date" id="w-datum"></div>
+      <div>
+        <label>Monteur(s)</label>
+        <div class="check-list" id="w-monteurs">
+          <label><input type="checkbox" value="Tony"> Tony</label>
+          <label><input type="checkbox" value="Davy"> Davy</label>
+          <label><input type="checkbox" value="Guus"> Guus</label>
+          <label><input type="checkbox" value="Suad"> Suad</label>
+          <label><input type="checkbox" value="Elbekri"> Elbekri</label>
+        </div>
+      </div>
+      <div>
+        <label>Werktijd</label>
+        <div class="time-row">
+          <div><input type="time" id="w-begintijd" oninput="updateUren()"></div>
+          <div><input type="time" id="w-eindtijd" oninput="updateUren()"></div>
+          <div><input type="number" id="w-pauze" placeholder="Pauze (min)" min="0" step="5" oninput="updateUren()"></div>
+        </div>
+        <div class="hours-display" id="w-uren-display">Gewerkte tijd: <strong>–</strong></div>
+      </div>
       <div><label>Omschrijving</label><textarea id="w-omschrijving" placeholder="Wat is er gedaan?"></textarea></div>
-      <div><label>Gebruikte materialen</label><textarea id="w-materialen" placeholder="bijv. Waterklep 230V, 2x pakking"></textarea></div>
+      <div><label>Gebruikte materialen</label><input type="text" id="w-materialen" list="materiaal-suggesties" placeholder="bijv. Waterklep 230V, 2x pakking"></div>
       <div><label>Vervolgactie</label>
-        <select id="w-vervolgactie">
+        <select id="w-vervolgactie" onchange="toggleTeBestellenField()">
           <option value="Terugkomen">Klus nog niet afgerond (terugkomen)</option>
           <option value="Geen">Geen vervolgactie</option>
           <option value="Bestellen">Materialen bestellen</option>
         </select>
       </div>
+      <div id="w-tebestellen-row" class="field-hidden"><label>Te bestellen materialen</label><input type="text" id="w-tebestellen" list="materiaal-suggesties" placeholder="Wat moet er besteld worden?"></div>
+      <datalist id="materiaal-suggesties"></datalist>
     </div>
     <div class="modal-footer">
       <button onclick="closeModal('overlay-werkbon')">Annuleren</button>
@@ -315,8 +346,8 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-let openData = [], doneData = [], bestelData = [], werkbonData = [], verstuurdData = [];
-let editId = null, bestelEditId = null, werkbonEditId = null, dragSrcIdx = null;
+let openData = [], doneData = [], bestelData = [], werkbonData = [], verstuurdData = [], materialenData = [];
+let editId = null, bestelEditId = null, werkbonEditId = null, werkbonOpenId = null, dragSrcIdx = null;
 let activeTab = 'open';
 let unsubscribers = [];
 
@@ -387,6 +418,26 @@ function startListeners() {
     verstuurdData.sort((a,b)=>(b.verstuurdTs??0)-(a.verstuurdTs??0));
     renderVerstuurd(); updateBadges();
   }));
+  unsubscribers.push(onSnapshot(collection(db,'materialen'), snap => {
+    materialenData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    materialenData.sort((a,b)=>(a.naam||'').localeCompare(b.naam||''));
+    renderMaterialenSuggesties();
+  }));
+}
+
+function renderMaterialenSuggesties() {
+  const list = document.getElementById('materiaal-suggesties');
+  if (!list) return;
+  list.innerHTML = materialenData.map(m=>`<option value="${m.naam}">`).join('');
+}
+
+async function upsertMaterialen(text) {
+  if (!text) return;
+  const bekend = new Set(materialenData.map(m=>m.naam.toLowerCase()));
+  const nieuw = text.split(',').map(s=>s.trim()).filter(s=>s && !bekend.has(s.toLowerCase()));
+  for (const naam of nieuw) {
+    try { await addDoc(collection(db,'materialen'),{naam}); bekend.add(naam.toLowerCase()); } catch(e) { /* negeer, telt niet als kritieke fout */ }
+  }
 }
 
 function setSyncStatus(state) {
@@ -430,10 +481,12 @@ function renderOpen() {
       <td><strong>${r.klant}</strong>
         ${r.locatie?`<div class="location">📍 ${r.locatie}</div>`:''}
         ${r.note?`<div class="note">⚠️ ${r.note}</div>`:''}
+        ${r.vervolgStatus?`<div style="margin-top:4px;"><span class="badge-status ${vervolgClass(r.vervolgStatus)}">${vervolgLabel(r.vervolgStatus)}</span></div>`:''}
       </td>
       <td class="row-date col-date"><span class="date-full">${formatDate(r.datum||'')}</span><span class="date-short">${formatDateShort(r.datum||'')}</span></td>
       <td style="font-size:12px;">${r.todo}</td>
       <td><div class="actions">
+        <button class="btn-sm edit" onclick="makeWerkbonFromOpen('${r.id}')" style="border-color:#a0c8a0;color:#2e7d4f;">Werkbon maken</button>
         <button class="btn-sm done" onclick="markDone('${r.id}')">Afgerond</button>
         <button class="btn-sm edit" onclick="editEntry('${r.id}')">Bewerken</button>
         <button class="btn-sm del" onclick="deleteEntry('${r.id}')">Verwijder</button>
@@ -512,11 +565,12 @@ function renderBestel() {
   if (!bestelData.length) { body.innerHTML=`<tr><td colspan="5" class="empty">Geen openstaande bestellingen.</td></tr>`; return; }
   body.innerHTML = bestelData.map(r=>`
     <tr class="bestel-row">
-      <td><strong>${r.leverancier}</strong></td>
+      <td><strong>${r.leverancier||'–'}</strong></td>
       <td style="font-size:12px;">${r.onderdeel}</td>
       <td style="font-size:12px;">${r.klant}</td>
-      <td><span class="badge-status ${r.status==='Ontvangen'?'ontvangen':'besteld'}">${r.status}</span></td>
+      <td><span class="badge-status ${bestelClass(r.status)}">${r.status}</span></td>
       <td><div class="actions">
+        ${r.status==='Nog bestellen'?`<button class="btn-sm ontvangen" onclick="markBesteld('${r.id}')">→ Besteld</button>`:''}
         ${r.status==='Besteld'?`<button class="btn-sm ontvangen" onclick="markOntvangen('${r.id}')">✓ Ontvangen</button>`:''}
         <button class="btn-sm edit" onclick="editBestel('${r.id}')">Bewerken</button>
         <button class="btn-sm del" onclick="deleteBestel('${r.id}')">Verwijder</button>
@@ -524,9 +578,17 @@ function renderBestel() {
     </tr>`).join('');
 }
 
+function bestelClass(status) {
+  return status==='Ontvangen' ? 'ontvangen' : status==='Nog bestellen' ? 'nogbestellen' : 'besteld';
+}
+
 window.markOntvangen = async function(id) {
   setSyncStatus('syncing');
   try { await updateDoc(doc(db,'bestellingen',id),{status:'Ontvangen'}); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
+};
+window.markBesteld = async function(id) {
+  setSyncStatus('syncing');
+  try { await updateDoc(doc(db,'bestellingen',id),{status:'Besteld'}); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
 };
 window.deleteBestel = async function(id) {
   if (!confirm('Bestelling verwijderen?')) return;
@@ -548,7 +610,10 @@ function renderWerkbon() {
   if (!werkbonData.length) { body.innerHTML=`<tr><td colspan="7" class="empty">Nog geen werkbonnen.</td></tr>`; return; }
   body.innerHTML = werkbonData.map(r=>`
     <tr class="bestel-row">
-      <td><strong>${r.klant}</strong></td>
+      <td><strong>${r.klant}</strong>
+        ${(r.monteurs&&r.monteurs.length)?`<div class="location">🔧 ${r.monteurs.join(', ')}</div>`:''}
+        ${r.uren!=null?`<div class="location">⏱ ${r.uren} uur</div>`:''}
+      </td>
       <td class="row-date col-date"><span class="date-full">${formatDate(r.datum||'')}</span><span class="date-short">${formatDateShort(r.datum||'')}</span></td>
       <td style="font-size:12px;">${r.omschrijving}</td>
       <td style="font-size:12px;">${r.materialen||'–'}</td>
@@ -578,7 +643,7 @@ window.markWerkbonVerstuurd = async function(id) {
   const item = werkbonData.find(r=>r.id===id); if(!item) return;
   setSyncStatus('syncing');
   try {
-    await addDoc(collection(db,'werkbonnen_verstuurd'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',vervolgactie:item.vervolgactie||'Geen',gemaakt:item.gemaakt||false,verstuurdDate:new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'short',year:'numeric'}),verstuurdTs:Date.now()});
+    await addDoc(collection(db,'werkbonnen_verstuurd'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',monteurs:item.monteurs||[],begintijd:item.begintijd||'',eindtijd:item.eindtijd||'',pauze:item.pauze||0,uren:item.uren??null,vervolgactie:item.vervolgactie||'Geen',teBestellenMaterialen:item.teBestellenMaterialen||'',gemaakt:item.gemaakt||false,verstuurdDate:new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'short',year:'numeric'}),verstuurdTs:Date.now()});
     await deleteDoc(doc(db,'werkbonnen',id)); setSyncStatus('ok');
   } catch(e) { setSyncStatus('error'); }
 };
@@ -589,7 +654,10 @@ function renderVerstuurd() {
   if (!verstuurdData.length) { body.innerHTML=`<tr><td colspan="7" class="empty">Nog geen verstuurde werkbonnen.</td></tr>`; return; }
   body.innerHTML = verstuurdData.map(r=>`
     <tr class="done-row">
-      <td><strong>${r.klant}</strong></td>
+      <td><strong>${r.klant}</strong>
+        ${(r.monteurs&&r.monteurs.length)?`<div class="location">🔧 ${r.monteurs.join(', ')}</div>`:''}
+        ${r.uren!=null?`<div class="location">⏱ ${r.uren} uur</div>`:''}
+      </td>
       <td class="row-date col-date"><span class="date-full">${formatDate(r.datum||'')}</span><span class="date-short">${formatDateShort(r.datum||'')}</span></td>
       <td style="font-size:12px;">${r.omschrijving}</td>
       <td style="font-size:12px;">${r.materialen||'–'}</td>
@@ -606,7 +674,7 @@ window.restoreWerkbon = async function(id) {
   const item = verstuurdData.find(r=>r.id===id); if(!item) return;
   setSyncStatus('syncing');
   try {
-    await addDoc(collection(db,'werkbonnen'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',vervolgactie:item.vervolgactie||'Geen',gemaakt:item.gemaakt||false,createdTs:Date.now()});
+    await addDoc(collection(db,'werkbonnen'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',monteurs:item.monteurs||[],begintijd:item.begintijd||'',eindtijd:item.eindtijd||'',pauze:item.pauze||0,uren:item.uren??null,vervolgactie:item.vervolgactie||'Geen',teBestellenMaterialen:item.teBestellenMaterialen||'',gemaakt:item.gemaakt||false,createdTs:Date.now()});
     await deleteDoc(doc(db,'werkbonnen_verstuurd',id)); setSyncStatus('ok');
   } catch(e) { setSyncStatus('error'); }
 };
@@ -679,40 +747,113 @@ window.saveBestel = async function() {
   closeModal('overlay-bestel');
 };
 
-function openWerkbonModal(id) {
+function setMonteurCheckboxes(monteurs) {
+  document.querySelectorAll('#w-monteurs input[type=checkbox]').forEach(cb => { cb.checked = (monteurs||[]).includes(cb.value); });
+}
+function getMonteurCheckboxes() {
+  return Array.from(document.querySelectorAll('#w-monteurs input[type=checkbox]:checked')).map(cb=>cb.value);
+}
+
+window.updateUren = function() {
+  const display = document.getElementById('w-uren-display');
+  const uren = berekenUren();
+  if (uren===null) { display.innerHTML = 'Gewerkte tijd: <strong>–</strong>'; return; }
+  const h = Math.floor(uren), m = Math.round((uren-h)*60);
+  display.innerHTML = `Gewerkte tijd: <strong>${h}u ${m}m</strong> (${uren.toFixed(2)} uur)`;
+};
+
+function berekenUren() {
+  const begin = document.getElementById('w-begintijd').value;
+  const eind  = document.getElementById('w-eindtijd').value;
+  if (!begin || !eind) return null;
+  const pauze = parseInt(document.getElementById('w-pauze').value)||0;
+  const [bh,bm] = begin.split(':').map(Number);
+  const [eh,em] = eind.split(':').map(Number);
+  let minuten = (eh*60+em) - (bh*60+bm) - pauze;
+  if (minuten < 0) minuten = 0;
+  return minuten/60;
+}
+
+window.toggleTeBestellenField = function() {
+  const val = document.getElementById('w-vervolgactie').value;
+  document.getElementById('w-tebestellen-row').classList.toggle('field-hidden', val!=='Bestellen');
+};
+
+window.makeWerkbonFromOpen = function(id) {
+  const r = openData.find(r=>r.id===id); if (!r) return;
+  openWerkbonModal(null, r);
+};
+
+function openWerkbonModal(id, fromOpen) {
   werkbonEditId = id||null;
+  werkbonOpenId = fromOpen ? fromOpen.id : null;
   document.getElementById('modal-werkbon-title').textContent = werkbonEditId?'Werkbon bewerken':'Werkbon toevoegen';
   if (werkbonEditId) {
     const r = werkbonData.find(r=>r.id===werkbonEditId);
     if (r) {
+      werkbonOpenId = r.openId || null;
       document.getElementById('w-klant').value        = r.klant        || '';
       document.getElementById('w-datum').value        = r.datum        || todayISO();
       document.getElementById('w-omschrijving').value = r.omschrijving || '';
       document.getElementById('w-materialen').value   = r.materialen   || '';
+      document.getElementById('w-tebestellen').value  = r.teBestellenMaterialen || '';
+      document.getElementById('w-begintijd').value    = r.begintijd    || '';
+      document.getElementById('w-eindtijd').value     = r.eindtijd     || '';
+      document.getElementById('w-pauze').value         = r.pauze!=null ? r.pauze : '';
       document.getElementById('w-vervolgactie').value = r.vervolgactie || 'Geen';
+      setMonteurCheckboxes(r.monteurs);
     }
   } else {
     document.getElementById('w-datum').value = todayISO();
-    ['w-klant','w-omschrijving','w-materialen'].forEach(id=>document.getElementById(id).value='');
+    ['w-klant','w-omschrijving','w-materialen','w-tebestellen','w-begintijd','w-eindtijd','w-pauze'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('w-vervolgactie').value = 'Geen';
+    setMonteurCheckboxes([]);
+    if (fromOpen) {
+      document.getElementById('w-klant').value = fromOpen.klant || '';
+      document.getElementById('w-omschrijving').value = fromOpen.todo || '';
+    }
   }
+  window.toggleTeBestellenField();
+  window.updateUren();
   document.getElementById('overlay-werkbon').classList.add('open');
   setTimeout(()=>document.getElementById('w-klant').focus(),100);
 }
 
 window.saveWerkbon = async function() {
+  const uren = berekenUren();
   const entry = {
     klant:        document.getElementById('w-klant').value.trim(),
     datum:        document.getElementById('w-datum').value || todayISO(),
     omschrijving: document.getElementById('w-omschrijving').value.trim(),
+    monteurs:     getMonteurCheckboxes(),
+    begintijd:    document.getElementById('w-begintijd').value,
+    eindtijd:     document.getElementById('w-eindtijd').value,
+    pauze:        parseInt(document.getElementById('w-pauze').value)||0,
+    uren:         uren!==null ? Math.round(uren*100)/100 : null,
     materialen:   document.getElementById('w-materialen').value.trim(),
     vervolgactie: document.getElementById('w-vervolgactie').value,
+    teBestellenMaterialen: document.getElementById('w-tebestellen').value.trim(),
+    openId:       werkbonOpenId,
   };
   if (!entry.klant||!entry.omschrijving) { alert('Vul klant en omschrijving in.'); return; }
+  if (entry.vervolgactie==='Bestellen' && !entry.teBestellenMaterialen) { alert('Vul in wat er besteld moet worden.'); return; }
+  const isNieuw = !werkbonEditId;
   setSyncStatus('syncing');
   try {
     if (werkbonEditId) { await updateDoc(doc(db,'werkbonnen',werkbonEditId),entry); }
     else { entry.gemaakt=false; entry.createdTs=Date.now(); await addDoc(collection(db,'werkbonnen'),entry); }
+    await upsertMaterialen(entry.materialen);
+    await upsertMaterialen(entry.teBestellenMaterialen);
+    if (entry.openId) {
+      if (entry.vervolgactie==='Geen') {
+        await deleteDoc(doc(db,'open',entry.openId));
+      } else {
+        await updateDoc(doc(db,'open',entry.openId),{vervolgStatus:entry.vervolgactie});
+      }
+    }
+    if (isNieuw && entry.vervolgactie==='Bestellen' && entry.teBestellenMaterialen) {
+      await addDoc(collection(db,'bestellingen'),{leverancier:'',onderdeel:entry.teBestellenMaterialen,klant:entry.klant,status:'Nog bestellen'});
+    }
     setSyncStatus('ok');
   } catch(e) { setSyncStatus('error'); return; }
   closeModal('overlay-werkbon');
