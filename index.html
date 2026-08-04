@@ -1,884 +1,792 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HorecaConcurrent – Werklijst</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f4f3ef; color: #1a1a18; min-height: 100vh; }
-  #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f4f3ef; }
-  .login-box { background: #fff; border-radius: 12px; border: 0.5px solid #e0ddd8; padding: 40px 36px; width: 340px; max-width: 95vw; box-shadow: 0 4px 24px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 18px; }
-  .login-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1a1a18; text-align: center; }
-  .login-logo span { display: block; font-size: 11px; font-weight: 400; color: #888; letter-spacing: 0.04em; margin-top: 3px; }
-  .login-box label { font-size: 12px; font-weight: 600; color: #444; display: block; margin-bottom: 4px; }
-  .login-box input { width: 100%; padding: 9px 12px; border-radius: 7px; border: 0.5px solid #ccc; font-size: 14px; font-family: inherit; }
-  .login-box input:focus { outline: 2px solid #1a1a18; border-color: transparent; }
-  .login-btn { width: 100%; padding: 10px; border-radius: 7px; background: #1a1a18; color: #fff; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .login-btn:hover { background: #333; }
-  .login-btn:disabled { background: #888; cursor: not-allowed; }
-  .login-error { font-size: 12px; color: #b94040; text-align: center; display: none; }
-  #app-screen { display: none; }
-  header { background: #1a1a18; color: #f4f3ef; padding: 13px 24px; display: flex; align-items: center; justify-content: space-between; }
-  header h1 { font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
-  .header-right { display: flex; align-items: center; gap: 16px; }
-  .sync-status { font-size: 11px; color: #888; display: flex; align-items: center; gap: 5px; }
-  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #2e7d4f; display: inline-block; }
-  .sync-dot.syncing { background: #c47b00; animation: pulse 1s infinite; }
-  .sync-dot.error { background: #b94040; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .logout-btn { font-size: 12px; color: #888; background: none; border: none; cursor: pointer; padding: 3px 8px; border-radius: 4px; }
-  .logout-btn:hover { color: #fff; background: #333; }
-  .toolbar { background: #fff; border-bottom: 0.5px solid #ddd; padding: 10px 24px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .toolbar button { padding: 7px 14px; border-radius: 6px; border: 0.5px solid #ccc; background: #fff; font-size: 13px; cursor: pointer; white-space: nowrap; }
-  .toolbar button:hover { background: #f4f3ef; }
-  .toolbar button.primary { background: #1a1a18; color: #fff; border-color: #1a1a18; }
-  .toolbar button.primary:hover { background: #333; }
-  .spacer { flex: 1; }
-  .tab-bar { background: #fff; border-bottom: 0.5px solid #ddd; padding: 0 24px; display: flex; }
-  .tab { padding: 11px 20px; font-size: 13px; cursor: pointer; border-bottom: 2px solid transparent; color: #888; user-select: none; }
-  .tab.active { color: #1a1a18; font-weight: 600; border-bottom-color: #1a1a18; }
-  .tab .badge { display: inline-block; border-radius: 10px; font-size: 11px; padding: 1px 7px; margin-left: 6px; background: #e0ddd8; color: #555; }
-  .tab.active .badge { background: #1a1a18; color: #fff; }
-  .tab.tab-done .badge { background: #d4edda; color: #155724; }
-  .tab.tab-done.active .badge { background: #2e7d4f; color: #fff; }
-  .tab.tab-bestel .badge { background: #fef3cd; color: #856404; }
-  .tab.tab-bestel.active .badge { background: #c47b00; color: #fff; }
-  .tab.tab-werkbon .badge { background: #dbe9fb; color: #185fa5; }
-  .tab.tab-werkbon.active .badge { background: #185fa5; color: #fff; }
-  .tab.tab-verstuurd .badge { background: #d4edda; color: #155724; }
-  .tab.tab-verstuurd.active .badge { background: #2e7d4f; color: #fff; }
-  .main { padding: 20px 24px; }
-  .hint { font-size: 12px; color: #999; margin-bottom: 10px; }
-  .section-hidden { display: none; }
-  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; border: 0.5px solid #e0ddd8; overflow: hidden; font-size: 13px; }
-  thead { background: #f4f3ef; }
-  th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #666; border-bottom: 0.5px solid #e0ddd8; }
-  td { border-bottom: 0.5px solid #f0ede8; vertical-align: top; padding: 10px 16px; }
-  tr:last-child td { border-bottom: none; }
-  tr.data-row { cursor: grab; }
-  tr.data-row:hover td { background: #faf9f7; }
-  tr.done-row:hover td { background: #f6fff6; }
-  tr.bestel-row:hover td { background: #fffdf5; }
-  tr.dragging td { background: #e8f0fe !important; opacity: 0.7; }
-  tr.drag-over td { border-top: 2px solid #1a1a18 !important; }
-  .badge-status { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-  .badge-status.besteld { background: #fef3cd; color: #856404; }
-  .badge-status.ontvangen { background: #d4edda; color: #155724; }
-  .badge-status.terugkomen { background: #fde2e2; color: #b94040; }
-  .badge-status.nogbestellen { background: #fde2e2; color: #b94040; }
-  .badge-status.opgevraagd { background: #dbe9fb; color: #185fa5; }
-  .check-gemaakt { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; cursor: pointer; user-select: none; }
-  .check-gemaakt input { width: 15px; height: 15px; cursor: pointer; }
-  .check-list { display: flex; flex-wrap: wrap; gap: 10px 16px; }
-  .check-list label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 400; color: #1a1a18; cursor: pointer; user-select: none; margin-bottom: 0; }
-  .check-list input { width: 16px; height: 16px; cursor: pointer; }
-  .time-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-  .hours-display { font-size: 12px; color: #555; margin-top: 6px; }
-  .hours-display strong { color: #1a1a18; }
-  .field-hidden { display: none; }
-  .actions { display: flex; gap: 5px; flex-wrap: wrap; }
-  .btn-sm { padding: 4px 10px; border-radius: 5px; border: 0.5px solid #ccc; background: #fff; font-size: 12px; cursor: pointer; white-space: nowrap; }
-  .btn-sm:hover { background: #f4f3ef; }
-  .btn-sm.done { border-color: #a0c8a0; color: #2e7d4f; }
-  .btn-sm.done:hover { background: #eaf3ea; }
-  .btn-sm.del { border-color: #e0a0a0; color: #b94040; }
-  .btn-sm.del:hover { background: #fff5f5; }
-  .btn-sm.edit { border-color: #b0c4de; color: #185fa5; }
-  .btn-sm.edit:hover { background: #e6f1fb; }
-  .btn-sm.restore { border-color: #b0c4de; color: #185fa5; }
-  .btn-sm.restore:hover { background: #e6f1fb; }
-  .btn-sm.ontvangen { border-color: #a0c8a0; color: #2e7d4f; }
-  .btn-sm.ontvangen:hover { background: #eaf3ea; }
-  .location { font-size: 11px; color: #555; margin-top: 2px; }
-  .note { font-size: 11px; color: #c47b00; margin-top: 3px; font-style: italic; }
-  .row-date { font-size: 11px; color: #888; white-space: nowrap; }
-  .empty { text-align: center; padding: 48px; color: #bbb; font-size: 14px; }
-  .loading { text-align: center; padding: 48px; color: #aaa; font-size: 13px; }
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.38); z-index: 100; align-items: center; justify-content: center; }
-  .overlay.open { display: flex; }
-  .modal { background: #fff; border-radius: 10px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.16); }
-  .modal-header { padding: 17px 20px 13px; border-bottom: 0.5px solid #e0ddd8; display: flex; justify-content: space-between; align-items: center; }
-  .modal-header h2 { font-size: 15px; font-weight: 600; }
-  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
-  .modal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 13px; }
-  .modal-footer { padding: 13px 20px; border-top: 0.5px solid #e0ddd8; display: flex; justify-content: flex-end; gap: 8px; }
-  label { font-size: 12px; font-weight: 600; color: #444; display: block; margin-bottom: 4px; }
-  input[type=text], input[type=email], input[type=password], input[type=date], textarea, select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 0.5px solid #ccc; font-size: 13px; font-family: inherit; background: #fff; }
-  input:focus, textarea:focus, select:focus { outline: 2px solid #1a1a18; outline-offset: 1px; border-color: transparent; }
-  textarea { resize: vertical; min-height: 70px; }
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  @media (max-width: 600px) {
-    .modal { width: 100%; max-width: 100vw; max-height: 100vh; height: 100%; border-radius: 0; }
-    .modal-header { padding: 16px; }
-    .modal-header h2 { font-size: 17px; }
-    .modal-close { padding: 8px; font-size: 22px; }
-    .modal-body { padding: 16px; gap: 16px; }
-    .modal-footer { padding: 16px; flex-direction: column-reverse; }
-    .modal-footer button { width: 100%; padding: 13px; font-size: 15px; }
-    label { font-size: 13px; margin-bottom: 6px; }
-    input[type=text], input[type=email], input[type=password], input[type=date], textarea, select { font-size: 16px; padding: 11px 12px; }
-    textarea { min-height: 90px; }
-    .field-row { grid-template-columns: 1fr; }
-    .time-row { grid-template-columns: 1fr; gap: 10px; }
-    .toolbar, .tab-bar { padding-left: 12px; padding-right: 12px; }
-    .tab-bar { flex-wrap: wrap; }
-    .tab { padding: 9px 10px; font-size: 12px; }
-    .main { padding: 14px 12px; }
-    table { font-size: 12px; }
-    th, td { padding: 8px 10px; }
-  }
-  @media print {
-    body { background: #fff; min-height: unset; }
-    #login-screen { display: none !important; }
-    header, .toolbar, .tab-bar, .actions, .hint, .overlay { display: none !important; }
-    .main { padding: 0; }
-    .print-header { display: flex !important; margin-bottom: 14px; }
-    .section-hidden { display: none !important; }
-    table { border: 1px solid #ccc; font-size: 11px; }
-    th, td { padding: 7px 10px; }
-    th:last-child, td:last-child { display: none; }
-    .print-hide-col { display: none !important; }
-    .col-date { width: 42px !important; font-size: 10px !important; }
-    .date-full { display: none !important; }
-    .date-short { display: inline !important; }
-    html, body { height: auto !important; overflow: visible !important; }
-  }
-  .print-header { display: none; align-items: baseline; gap: 10px; }
-  .print-header h2 { font-size: 16px; font-weight: 700; }
-  .print-header p { font-size: 12px; color: #555; }
-  .date-short { display: none; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HorecaConcurrent – Werklijst</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .fade-in { animation: fadeIn 0.35s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .sortable-ghost { opacity: 0.35; background: #e2e8f0; }
+    .sortable-chosen { background: #f8fafc; }
+    .modal-overlay { display: none; }
+    .modal-overlay:not(.hidden) { display: flex; }
+    #appContainer.hidden { display: none; }
+
+    .action-btn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; font-size: 15px; transition: background-color .15s; }
+    .action-btn:hover { background-color: #f1f5f9; }
+
+    @media print {
+      #loginScreen, #sidebar, header, .modal-overlay, .print-hide { display: none !important; }
+      html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
+      #appContainer { display: block !important; opacity: 1 !important; height: auto !important; overflow: visible !important; }
+      main, .flex-1.overflow-y-auto { display: block !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
+      #view-dashboard .grid { display: none !important; }
+      .view table th:last-child, .view table td:last-child { display: none !important; }
+      #view-openstaand table th:first-child, #view-openstaand table td:first-child { display: none !important; }
+      .rounded-xl, .shadow-sm, .shadow-md { box-shadow: none !important; border-radius: 0 !important; }
+    }
+  </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased">
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">HorecaConcurrent<span>Werklijst & Bestellingen</span></div>
-    <div>
-      <label>E-mailadres</label>
-      <input type="email" id="login-email" placeholder="info@horecaconcurrent.com" onkeydown="if(event.key==='Enter')doLogin()">
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="fixed inset-0 bg-slate-900 bg-opacity-95 flex items-center justify-center z-50 transition-opacity duration-500">
+  <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md fade-in">
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-slate-800">Horeca<span class="text-blue-600">Concurrent</span></h1>
+      <p class="text-slate-500 mt-1">Werklijst & Bestellingen</p>
     </div>
-    <div>
-      <label>Wachtwoord</label>
-      <input type="password" id="login-pw" placeholder="Wachtwoord" onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
-    <button class="login-btn" id="login-btn" onclick="doLogin()">Inloggen</button>
-    <div class="login-error" id="login-error">Onjuiste gegevens. Probeer opnieuw.</div>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app-screen">
-  <header>
-    <h1>HorecaConcurrent — Werklijst</h1>
-    <div class="header-right">
-      <div class="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Verbonden</span></div>
-      <button class="logout-btn" onclick="doLogout()">Uitloggen</button>
-    </div>
-  </header>
-  <div class="toolbar">
-    <button class="primary" id="btn-add" onclick="handleAdd()">+ Toevoegen</button>
-    <span class="spacer"></span>
-    <button onclick="printList()">Afdrukken</button>
-  </div>
-  <div class="tab-bar">
-    <div class="tab active" id="tab-open" onclick="switchTab('open')">Open <span class="badge" id="badge-open">0</span></div>
-    <div class="tab tab-done" id="tab-done" onclick="switchTab('done')">Afgerond <span class="badge" id="badge-done">0</span></div>
-    <div class="tab tab-bestel" id="tab-bestel" onclick="switchTab('bestel')">Bestellingen <span class="badge" id="badge-bestel">0</span></div>
-    <div class="tab tab-werkbon" id="tab-werkbon" onclick="switchTab('werkbon')">Werkbonnen <span class="badge" id="badge-werkbon">0</span></div>
-    <div class="tab tab-verstuurd" id="tab-verstuurd" onclick="switchTab('verstuurd')">Verstuurd <span class="badge" id="badge-verstuurd">0</span></div>
-  </div>
-  <div class="main">
-    <div id="section-open">
-      <div class="print-header"><h2>HorecaConcurrent – Openstaande werkzaamheden</h2><p id="print-date-open"></p></div>
-      <p class="hint">☰ Sleep een rij om de volgorde te wijzigen.</p>
-      <table><thead><tr>
-        <th class="print-hide-col" style="width:20px"></th>
-        <th style="width:160px">Klant</th>
-        <th class="col-date" style="width:90px">Datum</th>
-        <th>Wat moet nog gedaan worden</th>
-        <th style="width:200px"></th>
-      </tr></thead><tbody id="table-open"><tr><td colspan="5" class="loading">Laden...</td></tr></tbody></table>
-    </div>
-    <div id="section-done" class="section-hidden">
-      <div class="print-header"><h2>HorecaConcurrent – Afgeronde werkzaamheden</h2><p id="print-date-done"></p></div>
-      <table><thead><tr>
-        <th style="width:170px">Klant</th><th>Werkzaamheden</th>
-        <th style="width:95px">Afgerond</th><th style="width:160px"></th>
-      </tr></thead><tbody id="table-done"><tr><td colspan="4" class="loading">Laden...</td></tr></tbody></table>
-    </div>
-    <div id="section-bestel" class="section-hidden">
-      <div class="print-header"><h2>HorecaConcurrent – Bestellingen</h2><p id="print-date-bestel"></p></div>
-      <table><thead><tr>
-        <th style="width:160px">Leverancier</th><th>Onderdeel / omschrijving</th>
-        <th style="width:150px">Voor klant</th><th style="width:110px">Status</th><th style="width:190px"></th>
-      </tr></thead><tbody id="table-bestel"><tr><td colspan="5" class="loading">Laden...</td></tr></tbody></table>
-    </div>
-    <div id="section-werkbon" class="section-hidden">
-      <div class="print-header"><h2>HorecaConcurrent – Werkbonnen</h2><p id="print-date-werkbon"></p></div>
-      <table><thead><tr>
-        <th style="width:150px">Klant</th>
-        <th class="col-date" style="width:90px">Datum</th>
-        <th>Omschrijving</th>
-        <th>Gebruikte materialen</th>
-        <th style="width:170px">Vervolgactie</th>
-        <th style="width:110px">Status</th>
-        <th style="width:160px"></th>
-      </tr></thead><tbody id="table-werkbon"><tr><td colspan="7" class="loading">Laden...</td></tr></tbody></table>
-    </div>
-    <div id="section-verstuurd" class="section-hidden">
-      <div class="print-header"><h2>HorecaConcurrent – Verstuurde werkbonnen</h2><p id="print-date-verstuurd"></p></div>
-      <table><thead><tr>
-        <th style="width:150px">Klant</th>
-        <th class="col-date" style="width:90px">Datum</th>
-        <th>Omschrijving</th>
-        <th>Gebruikte materialen</th>
-        <th style="width:170px">Vervolgactie</th>
-        <th style="width:100px">Verstuurd</th>
-        <th style="width:160px"></th>
-      </tr></thead><tbody id="table-verstuurd"><tr><td colspan="7" class="loading">Laden...</td></tr></tbody></table>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: werklijst -->
-<div class="overlay" id="overlay-add">
-  <div class="modal">
-    <div class="modal-header"><h2 id="modal-add-title">Toevoegen</h2><button class="modal-close" onclick="closeModal('overlay-add')">×</button></div>
-    <div class="modal-body">
-      <div class="field-row">
-        <div><label>Datum melding</label><input type="date" id="f-datum"></div>
-        <div><label>Klant</label><input type="text" id="f-klant" placeholder="Naam klant / bedrijf"></div>
-      </div>
-      <div><label>Locatie (optioneel)</label><input type="text" id="f-locatie" placeholder="bijv. Den Haag"></div>
-      <div><label>Wat moet nog gedaan worden</label><textarea id="f-todo" placeholder="Omschrijving werkzaamheden, inclusief onderdelen..."></textarea></div>
-      <div><label>Aandachtspunt (optioneel)</label><input type="text" id="f-note" placeholder="bijv. meerdere vestigingen, maandag uitvoeren"></div>
-    </div>
-    <div class="modal-footer">
-      <button onclick="closeModal('overlay-add')">Annuleren</button>
-      <button class="primary" onclick="saveEntry()">Opslaan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: bestelling -->
-<div class="overlay" id="overlay-bestel">
-  <div class="modal">
-    <div class="modal-header"><h2 id="modal-bestel-title">Bestelling toevoegen</h2><button class="modal-close" onclick="closeModal('overlay-bestel')">×</button></div>
-    <div class="modal-body">
-      <div><label>Leverancier / bedrijf</label><input type="text" id="b-leverancier" placeholder="bijv. Rational Parts, Frigomec, Hobart"></div>
-      <div><label>Onderdeel / omschrijving</label><textarea id="b-onderdeel" placeholder="bijv. Waterklep 230V art.12345"></textarea></div>
-      <div><label>Voor klant</label><input type="text" id="b-klant" placeholder="Naam klant waar het onderdeel voor is"></div>
-      <div><label>Status</label>
-        <select id="b-status">
-          <option value="Nog bestellen">Nog bestellen</option>
-          <option value="Opgevraagd">Onderdeel opgevraagd (wachten op bevestiging)</option>
-          <option value="Besteld">Besteld – wachten op levering</option>
-          <option value="Ontvangen">Ontvangen – klaar voor montage</option>
-        </select>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button onclick="closeModal('overlay-bestel')">Annuleren</button>
-      <button class="primary" onclick="saveBestel()">Opslaan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: werkbon -->
-<div class="overlay" id="overlay-werkbon">
-  <div class="modal">
-    <div class="modal-header"><h2 id="modal-werkbon-title">Werkbon toevoegen</h2><button class="modal-close" onclick="closeModal('overlay-werkbon')">×</button></div>
-    <div class="modal-body">
-      <div><label>Klant</label><input type="text" id="w-klant" placeholder="Naam klant / bedrijf"></div>
-      <div><label>Datum</label><input type="date" id="w-datum"></div>
+    <form id="loginForm" class="space-y-4">
       <div>
-        <label>Monteur(s)</label>
-        <div class="check-list" id="w-monteurs">
-          <label><input type="checkbox" value="Tony"> Tony</label>
-          <label><input type="checkbox" value="Davy"> Davy</label>
-          <label><input type="checkbox" value="Guus"> Guus</label>
-          <label><input type="checkbox" value="Suad"> Suad</label>
-          <label><input type="checkbox" value="Elbekri"> Elbekri</label>
-        </div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">E-mailadres</label>
+        <input type="email" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-transparent outline-none transition" placeholder="naam@bedrijf.nl">
       </div>
       <div>
-        <label>Werktijd</label>
-        <div class="time-row">
-          <div><input type="time" id="w-begintijd" oninput="updateUren()"></div>
-          <div><input type="time" id="w-eindtijd" oninput="updateUren()"></div>
-          <div><input type="number" id="w-pauze" placeholder="Pauze (min)" min="0" step="5" oninput="updateUren()"></div>
-        </div>
-        <div class="hours-display" id="w-uren-display">Gewerkte tijd: <strong>–</strong></div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Wachtwoord</label>
+        <input type="password" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-transparent outline-none transition" placeholder="••••••••">
       </div>
-      <div><label>Omschrijving</label><textarea id="w-omschrijving" placeholder="Wat is er gedaan?"></textarea></div>
-      <div><label>Gebruikte materialen</label><input type="text" id="w-materialen" list="materiaal-suggesties" placeholder="bijv. Waterklep 230V, 2x pakking"></div>
-      <div><label>Vervolgactie</label>
-        <select id="w-vervolgactie" onchange="toggleTeBestellenField()">
-          <option value="Terugkomen">Klus nog niet afgerond (terugkomen)</option>
-          <option value="Geen">Geen vervolgactie</option>
-          <option value="Bestellen">Materialen bestellen</option>
-        </select>
-      </div>
-      <div id="w-tebestellen-row" class="field-hidden"><label>Te bestellen materialen</label><input type="text" id="w-tebestellen" list="materiaal-suggesties" placeholder="Wat moet er besteld worden?"></div>
-      <datalist id="materiaal-suggesties"></datalist>
-    </div>
-    <div class="modal-footer">
-      <button onclick="closeModal('overlay-werkbon')">Annuleren</button>
-      <button class="primary" onclick="saveWerkbon()">Opslaan</button>
-    </div>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-md transition duration-200 flex items-center justify-center space-x-2">
+        <span>Inloggen</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+      <p id="loginError" class="text-red-500 text-sm text-center hidden">Onjuiste gegevens of verbindingsfout.</p>
+    </form>
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+<!-- MAIN APP -->
+<div id="appContainer" class="flex h-screen overflow-hidden opacity-0 transition-opacity duration-500 hidden">
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col shadow-xl md:shadow-none">
+    <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+      <h1 class="text-xl font-bold text-blue-400">Horeca<span class="text-white">Concurrent</span></h1>
+      <button id="closeSidebar" class="md:hidden text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
+    </div>
+    <nav class="flex-1 overflow-y-auto p-4 space-y-1">
+      <a href="#" class="nav-link active flex items-center space-x-3 px-4 py-3 rounded-lg bg-slate-800 text-blue-400 transition" data-tab="dashboard"><i class="fas fa-th-large w-5"></i><span>Dashboard</span></a>
+      <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="openstaand"><i class="fas fa-tasks w-5"></i><span>Openstaand</span></a>
+      <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="afgerond"><i class="fas fa-check-circle w-5"></i><span>Afgerond</span></a>
+      <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="bestellingen"><i class="fas fa-box w-5"></i><span>Bestellingen</span></a>
+      <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="werkbonnen"><i class="fas fa-file-invoice w-5"></i><span>Werkbonnen</span></a>
+      <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="verstuurd"><i class="fas fa-paper-plane w-5"></i><span>Verstuurd</span></a>
+    </nav>
+    <div class="p-4 border-t border-slate-800">
+      <button id="logoutBtn" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-400 transition"><i class="fas fa-sign-out-alt w-5"></i><span>Uitloggen</span></button>
+    </div>
+  </aside>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDdKth1b7FF-3lSojWmFEVlhi66qd6Pnfc",
-  authDomain: "horecaconcurrent-200d5.firebaseapp.com",
-  projectId: "horecaconcurrent-200d5",
-  storageBucket: "horecaconcurrent-200d5.firebasestorage.app",
-  messagingSenderId: "358146591271",
-  appId: "1:358146591271:web:3518f899825a25706f9c02"
-};
+  <main class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+    <header class="bg-white shadow-sm border-b border-slate-200 px-4 sm:px-6 py-4 flex items-center justify-between z-30">
+      <div class="flex items-center space-x-4">
+        <button id="sidebarToggle" class="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="fas fa-bars text-lg"></i></button>
+        <h2 id="pageTitle" class="text-xl font-semibold text-slate-800">Dashboard</h2>
+      </div>
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <span id="connectionBadge" class="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">Verbinden...</span>
+        <button class="text-slate-600 hover:text-slate-900 p-2 rounded-lg hover:bg-slate-100 transition" title="Afdrukken" onclick="window.print()"><i class="fas fa-print text-lg"></i></button>
+        <button id="addBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg shadow-sm flex items-center space-x-2 transition text-sm font-medium"><i class="fas fa-plus"></i><span class="hidden sm:inline">Toevoegen</span></button>
+      </div>
+    </header>
 
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+      <!-- DASHBOARD -->
+      <div id="view-dashboard" class="view fade-in">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Openstaand</p><p id="stat-openstaand" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-xl"><i class="fas fa-tasks"></i></div></div></div>
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Afgerond</p><p id="stat-afgerond" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div></div></div>
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Bestellingen</p><p id="stat-bestellingen" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl"><i class="fas fa-box"></i></div></div></div>
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Werkbonnen</p><p id="stat-werkbonnen" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-xl"><i class="fas fa-file-invoice"></i></div></div></div>
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Verstuurd</p><p id="stat-verstuurd" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl"><i class="fas fa-paper-plane"></i></div></div></div>
+        </div>
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 text-center">
+          <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 text-3xl"><i class="fas fa-clipboard-list"></i></div>
+          <h3 class="text-lg font-semibold text-slate-800 mb-2">Welkom bij HorecaConcurrent</h3>
+          <p class="text-slate-500 max-w-md mx-auto">Selecteer een categorie in het menu of klik op 'Toevoegen'.</p>
+        </div>
+      </div>
 
-let openData = [], doneData = [], bestelData = [], werkbonData = [], verstuurdData = [], materialenData = [];
-let editId = null, bestelEditId = null, werkbonEditId = null, werkbonOpenId = null, dragSrcIdx = null;
-let activeTab = 'open';
-let unsubscribers = [];
+      <!-- TABLES -->
+      <div id="view-openstaand" class="view hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+          <div class="print-hide px-6 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between"><p class="text-sm text-slate-600"><i class="fas fa-grip-vertical text-slate-400 mr-2"></i>Sleep een rij om de volgorde te wijzigen</p></div>
+          <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-xs"><tr><th class="px-4 py-3 w-10"></th><th class="px-6 py-3">Klant</th><th class="px-6 py-3">Datum</th><th class="px-6 py-3">Wat moet nog gedaan worden</th><th class="px-6 py-3 text-right">Acties</th></tr></thead><tbody id="tbody-openstaand" class="divide-y divide-slate-100 text-slate-600 bg-white"></tbody></table></div>
+        </div>
+      </div>
 
-function todayISO() { return new Date().toISOString().slice(0,10); }
+      <div id="view-afgerond" class="view hidden"><div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-xs"><tr><th class="px-6 py-3">Klant</th><th class="px-6 py-3">Werkzaamheden</th><th class="px-6 py-3">Afgerond</th><th class="px-6 py-3 text-right">Acties</th></tr></thead><tbody id="tbody-afgerond" class="divide-y divide-slate-100 text-slate-600 bg-white"></tbody></table></div></div></div>
 
-function formatDate(iso) {
-  if (!iso) return '';
-  const [y,m,d] = iso.split('-');
-  return `${d}-${m}-${y}`;
-}
+      <div id="view-bestellingen" class="view hidden"><div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-xs"><tr><th class="px-6 py-3">Leverancier</th><th class="px-6 py-3">Onderdeel</th><th class="px-6 py-3">Voor klant</th><th class="px-6 py-3">Status</th><th class="px-6 py-3 text-right">Acties</th></tr></thead><tbody id="tbody-bestellingen" class="divide-y divide-slate-100 text-slate-600 bg-white"></tbody></table></div></div></div>
 
-function formatDateShort(iso) {
-  if (!iso) return '';
-  const [y,m,d] = iso.split('-');
-  return `${d}-${m}`;
-}
+      <div id="view-werkbonnen" class="view hidden"><div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-xs"><tr><th class="px-6 py-3">Klant</th><th class="px-6 py-3">Datum</th><th class="px-6 py-3">Omschrijving</th><th class="px-6 py-3">Materialen</th><th class="px-6 py-3">Vervolgactie</th><th class="px-6 py-3">Status</th><th class="px-6 py-3 text-right">Acties</th></tr></thead><tbody id="tbody-werkbonnen" class="divide-y divide-slate-100 text-slate-600 bg-white"></tbody></table></div></div></div>
 
-// ── Auth ───────────────────────────────────────────────
-onAuthStateChanged(auth, user => {
-  if (user) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'block';
-    startListeners();
-  } else {
-    document.getElementById('login-screen').style.display = 'flex';
-    document.getElementById('app-screen').style.display = 'none';
-    unsubscribers.forEach(u=>u()); unsubscribers = [];
+      <div id="view-verstuurd" class="view hidden"><div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-xs"><tr><th class="px-6 py-3">Klant</th><th class="px-6 py-3">Datum</th><th class="px-6 py-3">Omschrijving</th><th class="px-6 py-3">Verstuurd</th><th class="px-6 py-3 text-right">Acties</th></tr></thead><tbody id="tbody-verstuurd" class="divide-y divide-slate-100 text-slate-600 bg-white"></tbody></table></div></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODALS -->
+<div id="modal-werkzaamheid" class="modal-overlay fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+      <h3 id="modal-werkzaamheid-title" class="text-lg font-semibold text-slate-800">Werkzaamheid Toevoegen</h3>
+      <button onclick="closeModal('modal-werkzaamheid')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="form-werkzaamheid" class="p-6 space-y-4">
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Datum</label><input type="date" name="datum" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Klant</label><input type="text" name="klant" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Locatie</label><input type="text" name="locatie" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Wat moet gebeuren</label><textarea name="todo" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></textarea></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Aandachtspunt</label><textarea name="note" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea></div>
+      <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeModal('modal-werkzaamheid')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuleren</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">Opslaan</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-bestelling" class="modal-overlay fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+      <h3 id="modal-bestelling-title" class="text-lg font-semibold text-slate-800">Bestelling Toevoegen</h3>
+      <button onclick="closeModal('modal-bestelling')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="form-bestelling" class="p-6 space-y-4">
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Leverancier</label><input type="text" name="leverancier" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Voor klant</label><input type="text" name="klant" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Onderdeel</label><input type="text" name="onderdeel" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"><option>Nog bestellen</option><option>Onderdeel opgevraagd</option><option>Besteld – wachten</option><option>Ontvangen</option></select></div>
+      <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeModal('modal-bestelling')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuleren</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">Opslaan</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-werkbon" class="modal-overlay fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto fade-in">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+      <h3 id="modal-werkbon-title" class="text-lg font-semibold text-slate-800">Werkbon Toevoegen</h3>
+      <button onclick="closeModal('modal-werkbon')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="form-werkbon" class="p-6 space-y-4">
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Klant</label><input type="text" name="klant" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Datum</label><input type="date" name="datum" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-2">Monteur(s)</label><div class="grid grid-cols-3 gap-2"><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Tony" class="rounded text-blue-600"> <span>Tony</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Davy" class="rounded text-blue-600"> <span>Davy</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Guus" class="rounded text-blue-600"> <span>Guus</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Suad" class="rounded text-blue-600"> <span>Suad</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Elbekri" class="rounded text-blue-600"> <span>Elbekri</span></label></div></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Werktijd</label><input type="text" name="werktijd" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="bijv. 09:00 - 11:30"></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Omschrijving</label><textarea name="omschrijving" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Materialen</label><textarea name="materialen" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Vervolgactie</label><select name="vervolgactie" id="werkbon-vervolgactie" onchange="toggleTeBestellenField()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"><option value="Terugkomen">Klus nog niet af (terugkomen)</option><option value="Geen">Geen vervolgactie</option><option value="Bestellen">Materialen bestellen</option></select></div><div id="werkbon-tebestellen-wrap" class="hidden"><label class="block text-sm font-medium text-slate-700 mb-1">Te bestellen</label><input type="text" name="teBestellenMaterialen" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div></div>
+      <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeModal('modal-werkbon')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuleren</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">Opslaan</button></div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ==========================================
+  // FIRESTORE CONFIGURATIE
+  // ==========================================
+  const PROJECT_ID = "horecaconcurrent-200d5";
+  const API_KEY = "AIzaSyDdKth1b7FF-3lSojWmFEVlhi66qd6Pnfc";
+
+  if(API_KEY === "JOUW_API_KEY_HIER") console.warn("Vergeet niet je API_KEY in te vullen in de code!");
+
+  const BASE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+
+  // AANGEPAST: Collectienamen die matchen met jouw Firestore Rules
+  const COLLECTIONS = {
+    openstaand: "open",           // In rules: /open/{docId}
+    afgerond: "done",             // In rules: /done/{docId}
+    bestellingen: "bestellingen", // In rules: /bestellingen/{docId}
+    werkbonnen: "werkbonnen",     // In rules: /werkbonnen/{docId}
+    verstuurd: "werkbonnen_verstuurd" // In rules: /werkbonnen_verstuurd/{docId}
+  };
+
+  let state = { openstaand: [], afgerond: [], bestellingen: [], werkbonnen: [], verstuurd: [] };
+  let accessToken = localStorage.getItem("hc_access_token");
+  let refreshToken = localStorage.getItem("hc_refresh_token");
+  let currentView = "dashboard";
+  let editing = { key: null, id: null };
+  let pendingOpenId = null;
+
+  const loginScreen = document.getElementById("loginScreen");
+  const appContainer = document.getElementById("appContainer");
+  const loginForm = document.getElementById("loginForm");
+  const loginError = document.getElementById("loginError");
+  const connectionBadge = document.getElementById("connectionBadge");
+  const pageTitle = document.getElementById("pageTitle");
+  const navLinks = document.querySelectorAll(".nav-link");
+
+  // ==========================================
+  // FIRESTORE HELPERS
+  // ==========================================
+
+  function toFirestore(data) {
+    const fields = {};
+    for (const key in data) {
+      if (key === 'id') continue;
+      const val = data[key];
+      if (val === null || val === undefined) continue;
+
+      if (typeof val === 'string') fields[key] = { stringValue: val };
+      else if (typeof val === 'number') fields[key] = { integerValue: String(val) };
+      else if (typeof val === 'boolean') fields[key] = { booleanValue: val };
+      else fields[key] = { stringValue: String(val) };
+    }
+    return { fields };
   }
-});
 
-window.doLogin = async function() {
-  const email = document.getElementById('login-email').value.trim();
-  const pw    = document.getElementById('login-pw').value;
-  const btn   = document.getElementById('login-btn');
-  const err   = document.getElementById('login-error');
-  err.style.display = 'none';
-  btn.disabled = true; btn.textContent = 'Inloggen...';
-  try { await signInWithEmailAndPassword(auth, email, pw); }
-  catch(e) { err.style.display='block'; document.getElementById('login-pw').value=''; document.getElementById('login-pw').focus(); }
-  btn.disabled = false; btn.textContent = 'Inloggen';
-};
+  function fromFirestore(doc) {
+    const result = { id: doc.name.split('/').pop() };
+    if (!doc.fields) return result;
 
-window.doLogout = async function() { await signOut(auth); };
-
-// ── Listeners ──────────────────────────────────────────
-function startListeners() {
-  unsubscribers.push(onSnapshot(collection(db,'open'), snap => {
-    openData = snap.docs.map(d=>({id:d.id,...d.data()}));
-    openData.sort((a,b)=>(a.order??0)-(b.order??0));
-    renderOpen(); updateBadges();
-  }));
-  unsubscribers.push(onSnapshot(collection(db,'done'), snap => {
-    doneData = snap.docs.map(d=>({id:d.id,...d.data()}));
-    doneData.sort((a,b)=>(b.doneTs??0)-(a.doneTs??0));
-    renderDone(); updateBadges();
-  }));
-  unsubscribers.push(onSnapshot(collection(db,'bestellingen'), snap => {
-    bestelData = snap.docs.map(d=>({id:d.id,...d.data()}));
-    bestelData.sort((a,b)=>(b.createdTs??0)-(a.createdTs??0));
-    renderBestel(); updateBadges();
-  }));
-  unsubscribers.push(onSnapshot(collection(db,'werkbonnen'), snap => {
-    werkbonData = snap.docs.map(d=>({id:d.id,...d.data()}));
-    werkbonData.sort((a,b)=>(b.createdTs??0)-(a.createdTs??0));
-    renderWerkbon(); updateBadges();
-  }));
-  unsubscribers.push(onSnapshot(collection(db,'werkbonnen_verstuurd'), snap => {
-    verstuurdData = snap.docs.map(d=>({id:d.id,...d.data()}));
-    verstuurdData.sort((a,b)=>(b.verstuurdTs??0)-(a.verstuurdTs??0));
-    renderVerstuurd(); updateBadges();
-  }));
-  unsubscribers.push(onSnapshot(collection(db,'materialen'), snap => {
-    materialenData = snap.docs.map(d=>({id:d.id,...d.data()}));
-    materialenData.sort((a,b)=>(a.naam||'').localeCompare(b.naam||''));
-    renderMaterialenSuggesties();
-  }));
-}
-
-function renderMaterialenSuggesties() {
-  const list = document.getElementById('materiaal-suggesties');
-  if (!list) return;
-  list.innerHTML = materialenData.map(m=>`<option value="${m.naam}">`).join('');
-}
-
-async function upsertMaterialen(text) {
-  if (!text) return;
-  const bekend = new Set(materialenData.map(m=>m.naam.toLowerCase()));
-  const nieuw = text.split(',').map(s=>s.trim()).filter(s=>s && !bekend.has(s.toLowerCase()));
-  for (const naam of nieuw) {
-    try { await addDoc(collection(db,'materialen'),{naam}); bekend.add(naam.toLowerCase()); } catch(e) { /* negeer, telt niet als kritieke fout */ }
+    for (const key in doc.fields) {
+      const val = doc.fields[key];
+      if ('stringValue' in val) result[key] = val.stringValue;
+      else if ('integerValue' in val) result[key] = parseInt(val.integerValue);
+      else if ('booleanValue' in val) result[key] = val.booleanValue;
+      else if ('timestampValue' in val) result[key] = val.timestampValue;
+    }
+    return result;
   }
-}
 
-function setSyncStatus(state) {
-  const dot = document.getElementById('sync-dot');
-  const lbl = document.getElementById('sync-label');
-  if (!dot) return;
-  dot.className = 'sync-dot'+(state==='syncing'?' syncing':state==='error'?' error':'');
-  lbl.textContent = state==='syncing'?'Opslaan...':state==='error'?'Fout':'Verbonden';
-}
+  function authHeaders() {
+    return {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+    };
+  }
 
-function updateBadges() {
-  document.getElementById('badge-open').textContent   = openData.length;
-  document.getElementById('badge-done').textContent   = doneData.length;
-  document.getElementById('badge-bestel').textContent = bestelData.length;
-  document.getElementById('badge-werkbon').textContent = werkbonData.length;
-  document.getElementById('badge-verstuurd').textContent = verstuurdData.length;
-}
+  // ==========================================
+  // FIREBASE API CALLS
+  // ==========================================
 
-window.switchTab = function(tab) {
-  activeTab = tab;
-  ['open','done','bestel','werkbon','verstuurd'].forEach(t => {
-    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
-    document.getElementById('section-'+t).classList.toggle('section-hidden', t!==tab);
+  async function fsList(collectionKey) {
+    const collectionName = COLLECTIONS[collectionKey];
+    const res = await fetch(`${BASE_URL}/${collectionName}`, { headers: authHeaders() });
+    if (res.status === 401 && refreshToken) {
+      await refreshAccessToken();
+      return fsList(collectionKey);
+    }
+    if (!res.ok) throw new Error(`Firestore fout: ${res.status}`);
+    const data = await res.json();
+    return (data.documents || []).map(fromFirestore);
+  }
+
+  async function fsCreate(collectionKey, data) {
+    const collectionName = COLLECTIONS[collectionKey];
+    const res = await fetch(`${BASE_URL}/${collectionName}`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(toFirestore(data))
+    });
+    if (res.status === 401 && refreshToken) {
+      await refreshAccessToken();
+      return fsCreate(collectionKey, data);
+    }
+    if (!res.ok) throw new Error(`Create fout: ${res.status}`);
+    const doc = await res.json();
+    return fromFirestore(doc);
+  }
+
+  async function fsUpdate(collectionKey, docId, data) {
+    const collectionName = COLLECTIONS[collectionKey];
+    const res = await fetch(`${BASE_URL}/${collectionName}/${docId}`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify(toFirestore(data))
+    });
+    if (res.status === 401 && refreshToken) {
+      await refreshAccessToken();
+      return fsUpdate(collectionKey, docId, data);
+    }
+    if (!res.ok) throw new Error(`Update fout: ${res.status}`);
+  }
+
+  async function fsDelete(collectionKey, docId) {
+    const collectionName = COLLECTIONS[collectionKey];
+    const res = await fetch(`${BASE_URL}/${collectionName}/${docId}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (res.status === 401 && refreshToken) {
+      await refreshAccessToken();
+      return fsDelete(collectionKey, docId);
+    }
+    if (!res.ok) throw new Error(`Delete fout: ${res.status}`);
+  }
+
+  // ==========================================
+  // AUTH LOGIC
+  // ==========================================
+
+  async function loginWithEmailPassword(email, password) {
+    const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, returnSecureToken: true })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error.message);
+    accessToken = data.idToken;
+    refreshToken = data.refreshToken;
+    localStorage.setItem("hc_access_token", accessToken);
+    localStorage.setItem("hc_refresh_token", refreshToken);
+  }
+
+  async function refreshAccessToken() {
+    const res = await fetch(`https://securetoken.googleapis.com/v1/token?key=${API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `grant_type=refresh_token&refresh_token=${refreshToken}`
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error("Refresh mislukt");
+    accessToken = data.access_token;
+    localStorage.setItem("hc_access_token", accessToken);
+  }
+
+  async function loadAll() {
+    connectionBadge.textContent = "Laden...";
+    try {
+      await Promise.all(Object.keys(COLLECTIONS).map(async key => {
+        state[key] = await fsList(key);
+        state[key].sort((a, b) => (a.volgorde || 0) - (b.volgorde || 0));
+      }));
+      setConnected(true);
+      renderAll();
+    } catch (e) {
+      console.error(e);
+      setConnected(false);
+      alert("Kon data niet laden. Controleer je API Key en Firestore Rules.");
+    }
+  }
+
+  // ==========================================
+  // UI & APP LOGIC
+  // ==========================================
+
+  function setConnected(ok) {
+    connectionBadge.textContent = ok ? "Verbonden" : "Fout";
+    connectionBadge.className = `px-3 py-1 rounded-full text-xs font-medium ${ok ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`;
+  }
+
+  function showApp() {
+    loginScreen.style.display = "none";
+    appContainer.classList.remove("hidden");
+    setTimeout(() => appContainer.classList.remove("opacity-0"), 20);
+  }
+
+  function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
+  function closeModal(id) {
+    document.getElementById(id).classList.add("hidden");
+    editing = { key: null, id: null };
+    pendingOpenId = null;
+  }
+
+  function toggleTeBestellenField() {
+    const val = document.getElementById("werkbon-vervolgactie").value;
+    document.getElementById("werkbon-tebestellen-wrap").classList.toggle("hidden", val !== "Bestellen");
+  }
+
+  // ==========================================
+  // BEWERKEN
+  // ==========================================
+  function openEditModal(key, id) {
+    const item = state[key].find(i => i.id === id);
+    if (!item) return;
+    editing = { key, id };
+    pendingOpenId = null;
+
+    if (key === "openstaand") {
+      const f = document.getElementById("form-werkzaamheid");
+      f.datum.value = item.datum || "";
+      f.klant.value = item.klant || "";
+      f.locatie.value = item.locatie || "";
+      f.todo.value = item.todo || "";
+      f.note.value = item.note || "";
+      document.getElementById("modal-werkzaamheid-title").textContent = "Werkzaamheid Bewerken";
+      openModal("modal-werkzaamheid");
+    } else if (key === "bestellingen") {
+      const f = document.getElementById("form-bestelling");
+      f.leverancier.value = item.leverancier || "";
+      f.klant.value = item.klant || "";
+      f.onderdeel.value = item.onderdeel || "";
+      f.status.value = item.status || "Nog bestellen";
+      document.getElementById("modal-bestelling-title").textContent = "Bestelling Bewerken";
+      openModal("modal-bestelling");
+    } else if (key === "werkbonnen") {
+      const f = document.getElementById("form-werkbon");
+      f.klant.value = item.klant || "";
+      f.datum.value = item.datum || "";
+      f.werktijd.value = item.werktijd || "";
+      f.omschrijving.value = item.omschrijving || "";
+      f.materialen.value = item.materialen || "";
+      f.vervolgactie.value = item.vervolgactie || "Terugkomen";
+      f.teBestellenMaterialen.value = item.teBestellenMaterialen || "";
+      const monteurs = (item.monteurs || "").split(",").map(m => m.trim());
+      document.querySelectorAll('input[name="monteurs"]').forEach(cb => { cb.checked = monteurs.includes(cb.value); });
+      toggleTeBestellenField();
+      document.getElementById("modal-werkbon-title").textContent = "Werkbon Bewerken";
+      openModal("modal-werkbon");
+    }
+  }
+
+  function createWerkbonFromOpen(id) {
+    const item = state.openstaand.find(i => i.id === id);
+    if (!item) return;
+    editing = { key: null, id: null };
+    pendingOpenId = id;
+    const f = document.getElementById("form-werkbon");
+    f.reset();
+    f.klant.value = item.klant || "";
+    f.omschrijving.value = item.todo || "";
+    f.datum.value = new Date().toISOString().slice(0, 10);
+    toggleTeBestellenField();
+    document.getElementById("modal-werkbon-title").textContent = "Werkbon Toevoegen";
+    openModal("modal-werkbon");
+  }
+
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    loginError.classList.add("hidden");
+    const email = e.target.querySelector('input[type="email"]').value;
+    const password = e.target.querySelector('input[type="password"]').value;
+    try {
+      await loginWithEmailPassword(email, password);
+      await loadAll();
+      showApp();
+    } catch (err) {
+      console.error(err);
+      loginError.textContent = "Inloggen mislukt. Check je gegevens en API Key.";
+      loginError.classList.remove("hidden");
+    }
   });
-  document.getElementById('btn-add').textContent = tab==='bestel'?'+ Bestelling':tab==='werkbon'?'+ Werkbon':'+ Toevoegen';
-};
 
-window.handleAdd = function() {
-  if (activeTab==='bestel') openBestelModal();
-  else if (activeTab==='werkbon') openWerkbonModal();
-  else openAddModal();
-};
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.clear();
+    location.reload();
+  });
 
-// ── OPEN ──────────────────────────────────────────────
-function renderOpen() {
-  const body = document.getElementById('table-open');
-  if (!openData.length) { body.innerHTML=`<tr><td colspan="5" class="empty">Geen openstaande werkzaamheden 🎉</td></tr>`; return; }
-  body.innerHTML = openData.map((r,i) => `
-    <tr class="data-row" draggable="true" data-idx="${i}" data-id="${r.id}">
-      <td class="print-hide-col" style="padding:10px 8px;color:#ccc;font-size:18px;cursor:grab;text-align:center;user-select:none;">⠿</td>
-      <td><strong>${r.klant}</strong>
-        ${r.locatie?`<div class="location">📍 ${r.locatie}</div>`:''}
-        ${r.note?`<div class="note">⚠️ ${r.note}</div>`:''}
-        ${r.vervolgStatus?`<div style="margin-top:4px;"><span class="badge-status ${vervolgClass(r.vervolgStatus)}">${vervolgLabel(r.vervolgStatus)}</span></div>`:''}
-      </td>
-      <td class="row-date col-date"><span class="date-full">${formatDate(r.datum||'')}</span><span class="date-short">${formatDateShort(r.datum||'')}</span></td>
-      <td style="font-size:12px;">${r.todo}</td>
-      <td><div class="actions">
-        <button class="btn-sm edit" onclick="makeWerkbonFromOpen('${r.id}')" style="border-color:#a0c8a0;color:#2e7d4f;">Werkbon maken</button>
-        <button class="btn-sm done" onclick="markDone('${r.id}')">Afgerond</button>
-        <button class="btn-sm edit" onclick="editEntry('${r.id}')">Bewerken</button>
-        <button class="btn-sm del" onclick="deleteEntry('${r.id}')">Verwijder</button>
-      </div></td>
-    </tr>`).join('');
-
-  body.querySelectorAll('tr.data-row').forEach(row => {
-    row.addEventListener('dragstart', e => { dragSrcIdx=parseInt(row.dataset.idx); row.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
-    row.addEventListener('dragend', () => { row.classList.remove('dragging'); body.querySelectorAll('tr').forEach(r=>r.classList.remove('drag-over')); });
-    row.addEventListener('dragover', e => { e.preventDefault(); body.querySelectorAll('tr').forEach(r=>r.classList.remove('drag-over')); row.classList.add('drag-over'); });
-    row.addEventListener('drop', async e => {
+  navLinks.forEach(link => {
+    link.addEventListener("click", e => {
       e.preventDefault();
-      const ti = parseInt(row.dataset.idx);
-      if (dragSrcIdx===null||dragSrcIdx===ti) return;
-      const moved = openData.splice(dragSrcIdx,1)[0];
-      openData.splice(ti,0,moved);
-      setSyncStatus('syncing');
-      try { await Promise.all(openData.map((item,idx)=>updateDoc(doc(db,'open',item.id),{order:idx}))); setSyncStatus('ok'); }
-      catch(e) { setSyncStatus('error'); }
+      const tab = link.dataset.tab;
+      currentView = tab;
+      navLinks.forEach(l => {
+        l.classList.remove("active", "bg-slate-800", "text-blue-400");
+        l.classList.add("text-slate-300");
+      });
+      link.classList.add("active", "bg-slate-800", "text-blue-400");
+      link.classList.remove("text-slate-300");
+      pageTitle.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
+      document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+      document.getElementById(`view-${tab}`).classList.remove("hidden");
+      if(window.innerWidth < 768) document.getElementById("sidebar").classList.add("-translate-x-full");
     });
   });
-}
 
-window.markDone = async function(id) {
-  const item = openData.find(r=>r.id===id); if(!item) return;
-  setSyncStatus('syncing');
-  try {
-    await addDoc(collection(db,'done'),{klant:item.klant,locatie:item.locatie||'',todo:item.todo,note:item.note||'',datum:item.datum||'',doneDate:new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'short',year:'numeric'}),doneTs:Date.now()});
-    await deleteDoc(doc(db,'open',id)); setSyncStatus('ok');
-  } catch(e) { setSyncStatus('error'); }
-};
+  document.getElementById("sidebarToggle").addEventListener("click", () => document.getElementById("sidebar").classList.remove("-translate-x-full"));
+  document.getElementById("closeSidebar").addEventListener("click", () => document.getElementById("sidebar").classList.add("-translate-x-full"));
 
-window.deleteEntry = async function(id) {
-  if (!confirm('Verwijderen?')) return;
-  setSyncStatus('syncing');
-  try { await deleteDoc(doc(db,'open',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
-};
-window.editEntry = function(id) { openAddModal(id); };
-
-// ── AFGEROND ──────────────────────────────────────────
-function renderDone() {
-  const body = document.getElementById('table-done');
-  if (!doneData.length) { body.innerHTML=`<tr><td colspan="4" class="empty">Nog niets afgerond.</td></tr>`; return; }
-  body.innerHTML = doneData.map(r=>`
-    <tr class="done-row">
-      <td><strong>${r.klant}</strong>
-        ${r.locatie?`<div class="location">📍 ${r.locatie}</div>`:''}
-        ${r.datum?`<div class="location">📅 ${formatDate(r.datum)}</div>`:''}
-        ${r.note?`<div class="note">⚠️ ${r.note}</div>`:''}
-      </td>
-      <td style="font-size:12px;color:#555;">${r.todo}</td>
-      <td style="font-size:11px;color:#2e7d4f;white-space:nowrap;">${r.doneDate||''}</td>
-      <td><div class="actions">
-        <button class="btn-sm restore" onclick="restoreEntry('${r.id}')">↩ Terugzetten</button>
-        <button class="btn-sm del" onclick="deleteDone('${r.id}')">Verwijder</button>
-      </div></td>
-    </tr>`).join('');
-}
-
-window.restoreEntry = async function(id) {
-  const item = doneData.find(r=>r.id===id); if(!item) return;
-  setSyncStatus('syncing');
-  try { await addDoc(collection(db,'open'),{klant:item.klant,locatie:item.locatie||'',todo:item.todo,note:item.note||'',datum:item.datum||'',order:openData.length}); await deleteDoc(doc(db,'done',id)); setSyncStatus('ok'); }
-  catch(e) { setSyncStatus('error'); }
-};
-
-window.deleteDone = async function(id) {
-  if (!confirm('Definitief verwijderen?')) return;
-  setSyncStatus('syncing');
-  try { await deleteDoc(doc(db,'done',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
-};
-
-// ── BESTELLINGEN ──────────────────────────────────────
-function renderBestel() {
-  const body = document.getElementById('table-bestel');
-  if (!bestelData.length) { body.innerHTML=`<tr><td colspan="5" class="empty">Geen openstaande bestellingen.</td></tr>`; return; }
-  body.innerHTML = bestelData.map(r=>`
-    <tr class="bestel-row">
-      <td><strong>${r.leverancier||'–'}</strong></td>
-      <td style="font-size:12px;">${r.onderdeel}</td>
-      <td style="font-size:12px;">${r.klant}</td>
-      <td><span class="badge-status ${bestelClass(r.status)}">${r.status}</span></td>
-      <td><div class="actions">
-        ${r.status==='Nog bestellen'?`<button class="btn-sm ontvangen" onclick="markOpgevraagd('${r.id}')">→ Opgevraagd</button>`:''}
-        ${r.status==='Opgevraagd'?`<button class="btn-sm ontvangen" onclick="markBesteld('${r.id}')">→ Besteld</button>`:''}
-        ${r.status==='Besteld'?`<button class="btn-sm ontvangen" onclick="markOntvangen('${r.id}')">✓ Ontvangen</button>`:''}
-        <button class="btn-sm edit" onclick="editBestel('${r.id}')">Bewerken</button>
-        <button class="btn-sm del" onclick="deleteBestel('${r.id}')">Verwijder</button>
-      </div></td>
-    </tr>`).join('');
-}
-
-function bestelClass(status) {
-  return status==='Ontvangen' ? 'ontvangen' : status==='Nog bestellen' ? 'nogbestellen' : status==='Opgevraagd' ? 'opgevraagd' : 'besteld';
-}
-
-window.markOntvangen = async function(id) {
-  setSyncStatus('syncing');
-  try { await updateDoc(doc(db,'bestellingen',id),{status:'Ontvangen'}); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
-};
-window.markBesteld = async function(id) {
-  setSyncStatus('syncing');
-  try { await updateDoc(doc(db,'bestellingen',id),{status:'Besteld'}); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
-};
-window.markOpgevraagd = async function(id) {
-  setSyncStatus('syncing');
-  try { await updateDoc(doc(db,'bestellingen',id),{status:'Opgevraagd'}); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
-};
-window.deleteBestel = async function(id) {
-  if (!confirm('Bestelling verwijderen?')) return;
-  setSyncStatus('syncing');
-  try { await deleteDoc(doc(db,'bestellingen',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
-};
-window.editBestel = function(id) { openBestelModal(id); };
-
-// ── WERKBONNEN ──────────────────────────────────────────
-function vervolgLabel(v) {
-  return v==='Terugkomen' ? 'Terugkomen' : v==='Bestellen' ? 'Materialen bestellen' : 'Geen vervolgactie';
-}
-function vervolgClass(v) {
-  return v==='Terugkomen' ? 'terugkomen' : v==='Bestellen' ? 'besteld' : 'ontvangen';
-}
-
-function renderWerkbon() {
-  const body = document.getElementById('table-werkbon');
-  if (!werkbonData.length) { body.innerHTML=`<tr><td colspan="7" class="empty">Nog geen werkbonnen.</td></tr>`; return; }
-  body.innerHTML = werkbonData.map(r=>`
-    <tr class="bestel-row">
-      <td><strong>${r.klant}</strong>
-        ${(r.monteurs&&r.monteurs.length)?`<div class="location">🔧 ${r.monteurs.join(', ')}</div>`:''}
-        ${r.uren!=null?`<div class="location">⏱ ${r.uren} uur</div>`:''}
-      </td>
-      <td class="row-date col-date"><span class="date-full">${formatDate(r.datum||'')}</span><span class="date-short">${formatDateShort(r.datum||'')}</span></td>
-      <td style="font-size:12px;">${r.omschrijving}</td>
-      <td style="font-size:12px;">${r.materialen||'–'}</td>
-      <td><span class="badge-status ${vervolgClass(r.vervolgactie)}">${vervolgLabel(r.vervolgactie)}</span></td>
-      <td><label class="check-gemaakt"><input type="checkbox" ${r.gemaakt?'checked':''} onchange="toggleGemaakt('${r.id}',this.checked)"> Gemaakt</label></td>
-      <td><div class="actions">
-        <button class="btn-sm done" onclick="markWerkbonVerstuurd('${r.id}')">Verstuurd</button>
-        <button class="btn-sm edit" onclick="editWerkbon('${r.id}')">Bewerken</button>
-        <button class="btn-sm del" onclick="deleteWerkbon('${r.id}')">Verwijder</button>
-      </div></td>
-    </tr>`).join('');
-}
-
-window.editWerkbon = function(id) { openWerkbonModal(id); };
-window.deleteWerkbon = async function(id) {
-  if (!confirm('Werkbon verwijderen?')) return;
-  setSyncStatus('syncing');
-  try { await deleteDoc(doc(db,'werkbonnen',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
-};
-
-window.toggleGemaakt = async function(id, value) {
-  setSyncStatus('syncing');
-  try { await updateDoc(doc(db,'werkbonnen',id),{gemaakt:value}); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
-};
-
-window.markWerkbonVerstuurd = async function(id) {
-  const item = werkbonData.find(r=>r.id===id); if(!item) return;
-  setSyncStatus('syncing');
-  try {
-    await addDoc(collection(db,'werkbonnen_verstuurd'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',monteurs:item.monteurs||[],begintijd:item.begintijd||'',eindtijd:item.eindtijd||'',pauze:item.pauze||0,uren:item.uren??null,vervolgactie:item.vervolgactie||'Geen',teBestellenMaterialen:item.teBestellenMaterialen||'',gemaakt:item.gemaakt||false,verstuurdDate:new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'short',year:'numeric'}),verstuurdTs:Date.now()});
-    await deleteDoc(doc(db,'werkbonnen',id)); setSyncStatus('ok');
-  } catch(e) { setSyncStatus('error'); }
-};
-
-// ── VERSTUURD ───────────────────────────────────────────
-function renderVerstuurd() {
-  const body = document.getElementById('table-verstuurd');
-  if (!verstuurdData.length) { body.innerHTML=`<tr><td colspan="7" class="empty">Nog geen verstuurde werkbonnen.</td></tr>`; return; }
-  body.innerHTML = verstuurdData.map(r=>`
-    <tr class="done-row">
-      <td><strong>${r.klant}</strong>
-        ${(r.monteurs&&r.monteurs.length)?`<div class="location">🔧 ${r.monteurs.join(', ')}</div>`:''}
-        ${r.uren!=null?`<div class="location">⏱ ${r.uren} uur</div>`:''}
-      </td>
-      <td class="row-date col-date"><span class="date-full">${formatDate(r.datum||'')}</span><span class="date-short">${formatDateShort(r.datum||'')}</span></td>
-      <td style="font-size:12px;">${r.omschrijving}</td>
-      <td style="font-size:12px;">${r.materialen||'–'}</td>
-      <td><span class="badge-status ${vervolgClass(r.vervolgactie)}">${vervolgLabel(r.vervolgactie)}</span></td>
-      <td style="font-size:11px;color:#2e7d4f;white-space:nowrap;">${r.verstuurdDate||''}</td>
-      <td><div class="actions">
-        <button class="btn-sm restore" onclick="restoreWerkbon('${r.id}')">↩ Terugzetten</button>
-        <button class="btn-sm del" onclick="deleteVerstuurd('${r.id}')">Verwijder</button>
-      </div></td>
-    </tr>`).join('');
-}
-
-window.restoreWerkbon = async function(id) {
-  const item = verstuurdData.find(r=>r.id===id); if(!item) return;
-  setSyncStatus('syncing');
-  try {
-    await addDoc(collection(db,'werkbonnen'),{klant:item.klant,datum:item.datum||'',omschrijving:item.omschrijving,materialen:item.materialen||'',monteurs:item.monteurs||[],begintijd:item.begintijd||'',eindtijd:item.eindtijd||'',pauze:item.pauze||0,uren:item.uren??null,vervolgactie:item.vervolgactie||'Geen',teBestellenMaterialen:item.teBestellenMaterialen||'',gemaakt:item.gemaakt||false,createdTs:Date.now()});
-    await deleteDoc(doc(db,'werkbonnen_verstuurd',id)); setSyncStatus('ok');
-  } catch(e) { setSyncStatus('error'); }
-};
-
-window.deleteVerstuurd = async function(id) {
-  if (!confirm('Definitief verwijderen?')) return;
-  setSyncStatus('syncing');
-  try { await deleteDoc(doc(db,'werkbonnen_verstuurd',id)); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
-};
-
-// ── MODALS ────────────────────────────────────────────
-function openAddModal(id) {
-  editId = id||null;
-  document.getElementById('modal-add-title').textContent = editId?'Bewerken':'Toevoegen';
-  if (editId) {
-    const r = openData.find(r=>r.id===editId);
-    if (r) {
-      document.getElementById('f-datum').value   = r.datum   || todayISO();
-      document.getElementById('f-klant').value   = r.klant   || '';
-      document.getElementById('f-locatie').value = r.locatie || '';
-      document.getElementById('f-todo').value    = r.todo    || '';
-      document.getElementById('f-note').value    = r.note    || '';
+  document.getElementById("addBtn").addEventListener("click", () => {
+    editing = { key: null, id: null };
+    pendingOpenId = null;
+    if(["openstaand", "dashboard", "afgerond"].includes(currentView)) {
+      document.getElementById("form-werkzaamheid").reset();
+      document.getElementById("modal-werkzaamheid-title").textContent = "Werkzaamheid Toevoegen";
+      openModal("modal-werkzaamheid");
+    } else if(currentView === "bestellingen") {
+      document.getElementById("form-bestelling").reset();
+      document.getElementById("modal-bestelling-title").textContent = "Bestelling Toevoegen";
+      openModal("modal-bestelling");
+    } else {
+      document.getElementById("form-werkbon").reset();
+      toggleTeBestellenField();
+      document.getElementById("modal-werkbon-title").textContent = "Werkbon Toevoegen";
+      openModal("modal-werkbon");
     }
-  } else {
-    document.getElementById('f-datum').value = todayISO();
-    ['f-klant','f-locatie','f-todo','f-note'].forEach(id=>document.getElementById(id).value='');
-  }
-  document.getElementById('overlay-add').classList.add('open');
-  setTimeout(()=>document.getElementById('f-klant').focus(),100);
-}
+  });
 
-window.saveEntry = async function() {
-  const entry = {
-    datum:   document.getElementById('f-datum').value   || todayISO(),
-    klant:   document.getElementById('f-klant').value.trim(),
-    locatie: document.getElementById('f-locatie').value.trim(),
-    todo:    document.getElementById('f-todo').value.trim(),
-    note:    document.getElementById('f-note').value.trim(),
-  };
-  if (!entry.klant||!entry.todo) { alert('Vul klant en omschrijving in.'); return; }
-  setSyncStatus('syncing');
-  try {
-    if (editId) { await updateDoc(doc(db,'open',editId),entry); }
-    else { entry.order=openData.length; await addDoc(collection(db,'open'),entry); }
-    setSyncStatus('ok');
-  } catch(e) { setSyncStatus('error'); return; }
-  closeModal('overlay-add');
-};
+  document.querySelectorAll(".modal-overlay").forEach(m => m.addEventListener("click", e => {
+    if(e.target === m) closeModal(m.id);
+  }));
 
-function openBestelModal(id) {
-  bestelEditId = id||null;
-  document.getElementById('modal-bestel-title').textContent = bestelEditId?'Bestelling bewerken':'Bestelling toevoegen';
-  if (bestelEditId) {
-    const r = bestelData.find(r=>r.id===bestelEditId);
-    if (r) { document.getElementById('b-leverancier').value=r.leverancier||''; document.getElementById('b-onderdeel').value=r.onderdeel||''; document.getElementById('b-klant').value=r.klant||''; document.getElementById('b-status').value=r.status||'Opgevraagd'; }
-  } else { ['b-leverancier','b-onderdeel','b-klant'].forEach(id=>document.getElementById(id).value=''); document.getElementById('b-status').value='Opgevraagd'; }
-  document.getElementById('overlay-bestel').classList.add('open');
-  setTimeout(()=>document.getElementById('b-leverancier').focus(),100);
-}
-
-window.saveBestel = async function() {
-  const entry = {leverancier:document.getElementById('b-leverancier').value.trim(),onderdeel:document.getElementById('b-onderdeel').value.trim(),klant:document.getElementById('b-klant').value.trim(),status:document.getElementById('b-status').value};
-  if (!entry.leverancier||!entry.onderdeel||!entry.klant) { alert('Vul alle velden in.'); return; }
-  setSyncStatus('syncing');
-  try {
-    if (bestelEditId) { await updateDoc(doc(db,'bestellingen',bestelEditId),entry); }
-    else { entry.createdTs=Date.now(); await addDoc(collection(db,'bestellingen'),entry); }
-    setSyncStatus('ok');
-  } catch(e) { setSyncStatus('error'); return; }
-  closeModal('overlay-bestel');
-};
-
-function setMonteurCheckboxes(monteurs) {
-  document.querySelectorAll('#w-monteurs input[type=checkbox]').forEach(cb => { cb.checked = (monteurs||[]).includes(cb.value); });
-}
-function getMonteurCheckboxes() {
-  return Array.from(document.querySelectorAll('#w-monteurs input[type=checkbox]:checked')).map(cb=>cb.value);
-}
-
-window.updateUren = function() {
-  const display = document.getElementById('w-uren-display');
-  const uren = berekenUren();
-  if (uren===null) { display.innerHTML = 'Gewerkte tijd: <strong>–</strong>'; return; }
-  const h = Math.floor(uren), m = Math.round((uren-h)*60);
-  display.innerHTML = `Gewerkte tijd: <strong>${h}u ${m}m</strong> (${uren.toFixed(2)} uur)`;
-};
-
-function berekenUren() {
-  const begin = document.getElementById('w-begintijd').value;
-  const eind  = document.getElementById('w-eindtijd').value;
-  if (!begin || !eind) return null;
-  const pauze = parseInt(document.getElementById('w-pauze').value)||0;
-  const [bh,bm] = begin.split(':').map(Number);
-  const [eh,em] = eind.split(':').map(Number);
-  let minuten = (eh*60+em) - (bh*60+bm) - pauze;
-  if (minuten < 0) minuten = 0;
-  return minuten/60;
-}
-
-window.toggleTeBestellenField = function() {
-  const val = document.getElementById('w-vervolgactie').value;
-  document.getElementById('w-tebestellen-row').classList.toggle('field-hidden', val!=='Bestellen');
-};
-
-window.makeWerkbonFromOpen = function(id) {
-  const r = openData.find(r=>r.id===id); if (!r) return;
-  openWerkbonModal(null, r);
-};
-
-function openWerkbonModal(id, fromOpen) {
-  werkbonEditId = id||null;
-  werkbonOpenId = fromOpen ? fromOpen.id : null;
-  document.getElementById('modal-werkbon-title').textContent = werkbonEditId?'Werkbon bewerken':'Werkbon toevoegen';
-  if (werkbonEditId) {
-    const r = werkbonData.find(r=>r.id===werkbonEditId);
-    if (r) {
-      werkbonOpenId = r.openId || null;
-      document.getElementById('w-klant').value        = r.klant        || '';
-      document.getElementById('w-datum').value        = r.datum        || todayISO();
-      document.getElementById('w-omschrijving').value = r.omschrijving || '';
-      document.getElementById('w-materialen').value   = r.materialen   || '';
-      document.getElementById('w-tebestellen').value  = r.teBestellenMaterialen || '';
-      document.getElementById('w-begintijd').value    = r.begintijd    || '';
-      document.getElementById('w-eindtijd').value     = r.eindtijd     || '';
-      document.getElementById('w-pauze').value         = r.pauze!=null ? r.pauze : '';
-      document.getElementById('w-vervolgactie').value = r.vervolgactie || 'Geen';
-      setMonteurCheckboxes(r.monteurs);
-    }
-  } else {
-    document.getElementById('w-datum').value = todayISO();
-    ['w-klant','w-omschrijving','w-materialen','w-tebestellen','w-begintijd','w-eindtijd','w-pauze'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('w-vervolgactie').value = 'Geen';
-    setMonteurCheckboxes([]);
-    if (fromOpen) {
-      document.getElementById('w-klant').value = fromOpen.klant || '';
-      document.getElementById('w-omschrijving').value = fromOpen.todo || '';
-    }
-  }
-  window.toggleTeBestellenField();
-  window.updateUren();
-  document.getElementById('overlay-werkbon').classList.add('open');
-  setTimeout(()=>document.getElementById('w-klant').focus(),100);
-}
-
-window.saveWerkbon = async function() {
-  const uren = berekenUren();
-  const entry = {
-    klant:        document.getElementById('w-klant').value.trim(),
-    datum:        document.getElementById('w-datum').value || todayISO(),
-    omschrijving: document.getElementById('w-omschrijving').value.trim(),
-    monteurs:     getMonteurCheckboxes(),
-    begintijd:    document.getElementById('w-begintijd').value,
-    eindtijd:     document.getElementById('w-eindtijd').value,
-    pauze:        parseInt(document.getElementById('w-pauze').value)||0,
-    uren:         uren!==null ? Math.round(uren*100)/100 : null,
-    materialen:   document.getElementById('w-materialen').value.trim(),
-    vervolgactie: document.getElementById('w-vervolgactie').value,
-    teBestellenMaterialen: document.getElementById('w-tebestellen').value.trim(),
-    openId:       werkbonOpenId,
-  };
-  if (!entry.klant||!entry.omschrijving) { alert('Vul klant en omschrijving in.'); return; }
-  if (entry.vervolgactie==='Bestellen' && !entry.teBestellenMaterialen) { alert('Vul in wat er besteld moet worden.'); return; }
-  const isNieuw = !werkbonEditId;
-  setSyncStatus('syncing');
-  try {
-    if (werkbonEditId) { await updateDoc(doc(db,'werkbonnen',werkbonEditId),entry); }
-    else { entry.gemaakt=false; entry.createdTs=Date.now(); await addDoc(collection(db,'werkbonnen'),entry); }
-    await upsertMaterialen(entry.materialen);
-    await upsertMaterialen(entry.teBestellenMaterialen);
-    if (entry.openId) {
-      if (entry.vervolgactie==='Geen') {
-        await deleteDoc(doc(db,'open',entry.openId));
+  // FORMS
+  document.getElementById("form-werkzaamheid").addEventListener("submit", async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = {
+      datum: fd.get("datum"),
+      klant: fd.get("klant"),
+      locatie: fd.get("locatie"),
+      todo: fd.get("todo"),
+      note: fd.get("note")
+    };
+    try {
+      if (editing.key === "openstaand" && editing.id) {
+        await fsUpdate("openstaand", editing.id, data);
+        const idx = state.openstaand.findIndex(i => i.id === editing.id);
+        if (idx > -1) state.openstaand[idx] = { ...state.openstaand[idx], ...data };
       } else {
-        await updateDoc(doc(db,'open',entry.openId),{vervolgStatus:entry.vervolgactie});
+        data.volgorde = Date.now();
+        const savedItem = await fsCreate("openstaand", data);
+        state.openstaand.push(savedItem);
       }
+      renderAll();
+      e.target.reset();
+      closeModal("modal-werkzaamheid");
+    } catch(err) {
+      alert("Opslaan mislukt: " + err.message);
     }
-    if (isNieuw && entry.vervolgactie==='Bestellen' && entry.teBestellenMaterialen) {
-      await addDoc(collection(db,'bestellingen'),{leverancier:'',onderdeel:entry.teBestellenMaterialen,klant:entry.klant,status:'Opgevraagd',createdTs:Date.now()});
+  });
+
+  document.getElementById("form-bestelling").addEventListener("submit", async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = {
+      leverancier: fd.get("leverancier"),
+      onderdeel: fd.get("onderdeel"),
+      klant: fd.get("klant"),
+      status: fd.get("status")
+    };
+    try {
+      if (editing.key === "bestellingen" && editing.id) {
+        await fsUpdate("bestellingen", editing.id, data);
+        const idx = state.bestellingen.findIndex(i => i.id === editing.id);
+        if (idx > -1) state.bestellingen[idx] = { ...state.bestellingen[idx], ...data };
+      } else {
+        data.volgorde = Date.now();
+        const savedItem = await fsCreate("bestellingen", data);
+        state.bestellingen.push(savedItem);
+      }
+      renderAll();
+      e.target.reset();
+      closeModal("modal-bestelling");
+    } catch(err) {
+      alert("Opslaan mislukt");
     }
-    setSyncStatus('ok');
-  } catch(e) { setSyncStatus('error'); return; }
-  closeModal('overlay-werkbon');
-};
+  });
 
-window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
-['overlay-add','overlay-bestel','overlay-werkbon'].forEach(id => {
-  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)window.closeModal(id);});
-});
+  document.getElementById("form-werkbon").addEventListener("submit", async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const monteurs = Array.from(document.querySelectorAll('input[name="monteurs"]:checked')).map(c => c.value).join(", ");
+    const vervolgactie = fd.get("vervolgactie");
+    const teBestellenMaterialen = fd.get("teBestellenMaterialen");
+    if (vervolgactie === "Bestellen" && !teBestellenMaterialen) {
+      alert("Vul in wat er besteld moet worden.");
+      return;
+    }
+    const data = {
+      klant: fd.get("klant"),
+      datum: fd.get("datum"),
+      monteurs,
+      werktijd: fd.get("werktijd"),
+      omschrijving: fd.get("omschrijving"),
+      materialen: fd.get("materialen"),
+      vervolgactie,
+      teBestellenMaterialen
+    };
+    try {
+      if (editing.key === "werkbonnen" && editing.id) {
+        await fsUpdate("werkbonnen", editing.id, data);
+        const idx = state.werkbonnen.findIndex(i => i.id === editing.id);
+        if (idx > -1) state.werkbonnen[idx] = { ...state.werkbonnen[idx], ...data };
+      } else {
+        data.status = "Concept";
+        data.volgorde = Date.now();
+        const savedItem = await fsCreate("werkbonnen", data);
+        state.werkbonnen.push(savedItem);
 
-window.printList = function() {
-  const d = new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
-  ['open','done','bestel','werkbon','verstuurd'].forEach(t=>{const el=document.getElementById('print-date-'+t);if(el)el.textContent=`Afgedrukt op ${d}`;});
-  window.print();
-};
+        if (vervolgactie === "Bestellen" && teBestellenMaterialen) {
+          const besteld = await fsCreate("bestellingen", {
+            leverancier: "",
+            onderdeel: teBestellenMaterialen,
+            klant: data.klant,
+            status: "Onderdeel opgevraagd",
+            volgorde: Date.now()
+          });
+          state.bestellingen.push(besteld);
+        }
+
+        if (pendingOpenId) {
+          if (vervolgactie === "Geen") {
+            await fsDelete("openstaand", pendingOpenId);
+            state.openstaand = state.openstaand.filter(i => i.id !== pendingOpenId);
+          } else {
+            await fsUpdate("openstaand", pendingOpenId, { vervolgStatus: vervolgactie });
+            const oIdx = state.openstaand.findIndex(i => i.id === pendingOpenId);
+            if (oIdx > -1) state.openstaand[oIdx].vervolgStatus = vervolgactie;
+          }
+        }
+      }
+      renderAll();
+      e.target.reset();
+      closeModal("modal-werkbon");
+    } catch(err) {
+      alert("Opslaan mislukt");
+    }
+  });
+
+  async function deleteItem(key, id) {
+    if(!confirm("Weet je het zeker?")) return;
+    try {
+      await fsDelete(key, id);
+      state[key] = state[key].filter(i => i.id !== id);
+      renderAll();
+    } catch(err) {
+      alert("Verwijderen mislukt");
+    }
+  }
+
+  async function moveToAfgerond(id) {
+    const item = state.openstaand.find(i => i.id === id);
+    if(!item) return;
+    try {
+      await fsDelete("openstaand", id);
+      state.openstaand = state.openstaand.filter(i => i.id !== id);
+
+      const newItem = {
+        klant: item.klant,
+        locatie: item.locatie || "",
+        todo: item.todo || "",
+        note: item.note || "",
+        datum: item.datum || "",
+        doneDate: new Date().toLocaleDateString('nl-NL'),
+        doneTs: Date.now()
+      };
+      const saved = await fsCreate("afgerond", newItem);
+      state.afgerond.push(saved);
+
+      renderAll();
+    } catch(err) {
+      alert("Verplaatsen mislukt");
+    }
+  }
+
+  async function moveToVerstuurd(id) {
+    const item = state.werkbonnen.find(i => i.id === id);
+    if(!item) return;
+    try {
+      await fsDelete("werkbonnen", id);
+      state.werkbonnen = state.werkbonnen.filter(i => i.id !== id);
+
+      const newItem = {
+        ...item,
+        status: "Verstuurd",
+        verstuurdDate: new Date().toLocaleDateString('nl-NL')
+      };
+      delete newItem.id;
+      const saved = await fsCreate("verstuurd", newItem);
+      state.verstuurd.push(saved);
+
+      renderAll();
+    } catch(err) {
+      alert("Verplaatsen mislukt");
+    }
+  }
+
+  // RENDER
+  function renderAll() {
+    document.getElementById('stat-openstaand').innerText = state.openstaand.length;
+    document.getElementById('stat-afgerond').innerText = state.afgerond.length;
+    document.getElementById('stat-bestellingen').innerText = state.bestellingen.length;
+    document.getElementById('stat-werkbonnen').innerText = state.werkbonnen.length;
+    document.getElementById('stat-verstuurd').innerText = state.verstuurd.length;
+
+    renderTable('tbody-openstaand', state.openstaand, i => `
+                <tr class="hover:bg-slate-50 transition group" data-id="${i.id}">
+                    <td class="px-4 py-4 text-center cursor-move text-slate-300 group-hover:text-slate-500"><i class="fas fa-grip-vertical"></i></td>
+                    <td class="px-6 py-4 font-medium text-slate-800">${i.klant || '-'}
+                        ${i.locatie ? `<div class="text-xs font-normal text-slate-400 mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${i.locatie}</div>` : ''}
+                        ${i.note ? `<div class="text-xs font-normal text-amber-600 mt-0.5"><i class="fas fa-exclamation-triangle mr-1"></i>${i.note}</div>` : ''}
+                    </td>
+                    <td class="px-6 py-4">${i.datum || '-'}</td>
+                    <td class="px-6 py-4">${i.todo || '-'}</td>
+                    <td class="px-6 py-4 text-right space-x-1">
+                        <button onclick="createWerkbonFromOpen('${i.id}')" title="Werkbon maken" class="action-btn text-purple-600 hover:text-purple-800"><i class="fas fa-file-invoice"></i></button>
+                        <button onclick="moveToAfgerond('${i.id}')" title="Afgerond" class="action-btn text-emerald-600 hover:text-emerald-800"><i class="fas fa-check"></i></button>
+                        <button onclick="openEditModal('openstaand', '${i.id}')" title="Bewerken" class="action-btn text-blue-600 hover:text-blue-800"><i class="fas fa-pen"></i></button>
+                        <button onclick="deleteItem('openstaand', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`, 5);
+
+    renderTable('tbody-afgerond', state.afgerond, i => `
+                <tr>
+                    <td class="px-6 py-4">${i.klant || '-'}</td>
+                    <td class="px-6 py-4">${i.todo || '-'}</td>
+                    <td class="px-6 py-4">${i.doneDate || '-'}</td>
+                    <td class="px-6 py-4 text-right"><button onclick="deleteItem('afgerond', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></td>
+                </tr>`, 4);
+    renderTable('tbody-bestellingen', state.bestellingen, i => `
+                <tr>
+                    <td class="px-6 py-4">${i.leverancier || '-'}</td><td class="px-6 py-4">${i.onderdeel || '-'}</td><td class="px-6 py-4">${i.klant || '-'}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">${i.status || '-'}</span></td>
+                    <td class="px-6 py-4 text-right space-x-1">
+                        <button onclick="openEditModal('bestellingen', '${i.id}')" title="Bewerken" class="action-btn text-blue-600 hover:text-blue-800"><i class="fas fa-pen"></i></button>
+                        <button onclick="deleteItem('bestellingen', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`, 5);
+    renderTable('tbody-werkbonnen', state.werkbonnen, i => `
+                <tr>
+                    <td class="px-6 py-4">${i.klant || '-'}</td><td class="px-6 py-4">${i.datum || '-'}</td><td class="px-6 py-4">${i.omschrijving||'-'}</td>
+                    <td class="px-6 py-4">${i.materialen||'-'}</td><td class="px-6 py-4">${i.vervolgactie||'-'}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-700">${i.status || 'Concept'}</span></td>
+                    <td class="px-6 py-4 text-right space-x-1">
+                        <button onclick="moveToVerstuurd('${i.id}')" title="Verstuurd" class="action-btn text-blue-600 hover:text-blue-800"><i class="fas fa-paper-plane"></i></button>
+                        <button onclick="openEditModal('werkbonnen', '${i.id}')" title="Bewerken" class="action-btn text-blue-600 hover:text-blue-800"><i class="fas fa-pen"></i></button>
+                        <button onclick="deleteItem('werkbonnen', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`, 7);
+    renderTable('tbody-verstuurd', state.verstuurd, i => `
+                <tr>
+                    <td class="px-6 py-4">${i.klant || '-'}</td><td class="px-6 py-4">${i.datum || '-'}</td><td class="px-6 py-4">${i.omschrijving||'-'}</td><td class="px-6 py-4">${i.verstuurdDate || '-'}</td>
+                    <td class="px-6 py-4 text-right"><button onclick="deleteItem('verstuurd', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></td>
+                </tr>`, 5);
+
+    initSortable();
+  }
+
+  function renderTable(id, data, template, cols) {
+    const tbody = document.getElementById(id);
+    tbody.innerHTML = data.length ? data.map(template).join('') : `<tr><td colspan="${cols}" class="px-6 py-12 text-center text-slate-400">Geen gegevens.</td></tr>`;
+  }
+
+  function initSortable() {
+    const el = document.getElementById("tbody-openstaand");
+    if(el && !el.sortableInstance) {
+      el.sortableInstance = new Sortable(el, {
+        animation: 150,
+        handle: '.cursor-move',
+        ghostClass: 'sortable-ghost',
+        onEnd: async function(evt) {
+          if(evt.oldIndex === evt.newIndex) return;
+          const moved = state.openstaand.splice(evt.oldIndex, 1)[0];
+          state.openstaand.splice(evt.newIndex, 0, moved);
+
+          for(let i=0; i<state.openstaand.length; i++) {
+            state.openstaand[i].volgorde = i;
+            try {
+              await fsUpdate("openstaand", state.openstaand[i].id, state.openstaand[i]);
+            } catch(e) {
+              console.error("Sort update mislukt", e);
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // BOOT
+  if(accessToken) {
+    loadAll().then(showApp).catch(() => {
+      localStorage.clear();
+      location.reload();
+    });
+  }
 </script>
 </body>
 </html>
