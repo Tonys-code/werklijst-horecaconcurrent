@@ -22,12 +22,14 @@
     .modal-overlay { display: none; }
     .modal-overlay:not(.hidden) { display: flex; }
     #appContainer.hidden { display: none; }
+    #lightbox { display: none; }
+    #lightbox:not(.hidden) { display: flex; }
 
     .action-btn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; font-size: 15px; transition: background-color .15s; }
     .action-btn:hover { background-color: #f1f5f9; }
 
     @media print {
-      #loginScreen, #sidebar, header, .modal-overlay, .print-hide { display: none !important; }
+      #loginScreen, #sidebar, header, .modal-overlay, .print-hide, #lightbox { display: none !important; }
       html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
       #appContainer { display: block !important; opacity: 1 !important; height: auto !important; overflow: visible !important; }
       main, .flex-1.overflow-y-auto { display: block !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
@@ -79,6 +81,7 @@
       <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="bestellingen"><i class="fas fa-box w-5"></i><span>Bestellingen</span></a>
       <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="werkbonnen"><i class="fas fa-file-invoice w-5"></i><span>Werkbonnen</span></a>
       <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="verstuurd"><i class="fas fa-paper-plane w-5"></i><span>Verstuurd</span></a>
+      <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="klanten"><i class="fas fa-users w-5"></i><span>Klanten</span></a>
     </nav>
     <div class="p-4 border-t border-slate-800">
       <button id="logoutBtn" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-400 transition"><i class="fas fa-sign-out-alt w-5"></i><span>Uitloggen</span></button>
@@ -101,7 +104,8 @@
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <!-- DASHBOARD -->
       <div id="view-dashboard" class="view fade-in">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Klanten</p><p id="stat-klanten" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl"><i class="fas fa-users"></i></div></div></div>
           <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Openstaand</p><p id="stat-openstaand" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-xl"><i class="fas fa-tasks"></i></div></div></div>
           <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Afgerond</p><p id="stat-afgerond" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div></div></div>
           <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Bestellingen</p><p id="stat-bestellingen" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl"><i class="fas fa-box"></i></div></div></div>
@@ -112,6 +116,54 @@
           <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 text-3xl"><i class="fas fa-clipboard-list"></i></div>
           <h3 class="text-lg font-semibold text-slate-800 mb-2">Welkom bij Horeca Concurrent</h3>
           <p class="text-slate-500 max-w-md mx-auto">Selecteer een categorie in het menu of klik op 'Toevoegen'.</p>
+        </div>
+      </div>
+
+      <!-- KLANTEN -->
+      <div id="view-klanten" class="view hidden">
+        <div class="print-hide flex flex-col sm:flex-row gap-3 justify-between mb-4">
+          <div class="relative w-full sm:max-w-xs">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" id="klanten-zoek" oninput="renderKlanten()" placeholder="Zoek op naam, adres of contactpersoon..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+          </div>
+          <button type="button" onclick="importKlantenUitData()" class="text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center space-x-2 hover:bg-slate-50 transition flex-shrink-0"><i class="fas fa-magic"></i><span>Importeer klanten uit bestaande gegevens</span></button>
+        </div>
+        <div id="klanten-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <div id="view-klant-detail" class="view hidden">
+        <button type="button" onclick="backToKlanten()" class="print-hide mb-4 text-slate-600 hover:text-slate-900 flex items-center space-x-2 text-sm font-medium"><i class="fas fa-arrow-left"></i><span>Terug naar klanten</span></button>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h2 id="klant-detail-naam" class="text-xl font-bold text-slate-800"></h2>
+            <p id="klant-detail-adres" class="text-slate-500 text-sm mt-1"></p>
+            <p id="klant-detail-contact" class="text-slate-500 text-sm"></p>
+          </div>
+          <div class="print-hide flex space-x-1 flex-shrink-0">
+            <button onclick="editKlant()" title="Klant bewerken" class="action-btn text-blue-600 hover:text-blue-800"><i class="fas fa-pen"></i></button>
+            <button onclick="deleteKlant()" title="Klant verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+
+        <div class="print-hide flex space-x-1 border-b border-slate-200 mb-6">
+          <button type="button" class="detail-tab active px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600" data-detail-tab="producten" onclick="switchDetailTab('producten')">Producten</button>
+          <button type="button" class="detail-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500" data-detail-tab="fotos" onclick="switchDetailTab('fotos')">Foto's</button>
+          <button type="button" class="detail-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-slate-500" data-detail-tab="geschiedenis" onclick="switchDetailTab('geschiedenis')">Eerdere werkzaamheden</button>
+        </div>
+
+        <div id="detail-producten">
+          <div class="print-hide flex justify-end mb-4"><button type="button" onclick="openProductModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-sm"><i class="fas fa-plus"></i><span>Product toevoegen</span></button></div>
+          <div id="producten-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div id="detail-fotos" class="hidden">
+          <div class="print-hide flex justify-end mb-4"><button type="button" onclick="openFotoModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-sm"><i class="fas fa-camera"></i><span>Foto toevoegen</span></button></div>
+          <div id="fotos-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </div>
+
+        <div id="detail-geschiedenis" class="hidden">
+          <p class="text-xs text-slate-400 mb-4">Automatisch gekoppeld op basis van de klantnaam bij verstuurde werkbonnen en afgeronde werkzaamheden.</p>
+          <div id="geschiedenis-lijst" class="space-y-3"></div>
         </div>
       </div>
 
@@ -142,7 +194,7 @@
       <button onclick="closeModal('modal-werkzaamheid')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
     </div>
     <form id="form-werkzaamheid" class="p-6 space-y-4">
-      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Datum</label><input type="date" name="datum" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Klant</label><input type="text" name="klant" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Datum</label><input type="date" name="datum" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Klant</label><input type="text" name="klant" list="klanten-suggesties" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Locatie</label><input type="text" name="locatie" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Wat moet gebeuren</label><textarea name="todo" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></textarea></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Aandachtspunt</label><textarea name="note" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea></div>
@@ -158,7 +210,7 @@
       <button onclick="closeModal('modal-bestelling')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
     </div>
     <form id="form-bestelling" class="p-6 space-y-4">
-      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Leverancier</label><input type="text" name="leverancier" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Voor klant</label><input type="text" name="klant" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Leverancier</label><input type="text" name="leverancier" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Voor klant</label><input type="text" name="klant" list="klanten-suggesties" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Onderdeel</label><input type="text" name="onderdeel" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"><option>Nog bestellen</option><option>Onderdeel opgevraagd</option><option>Besteld – wachten</option><option>Ontvangen</option></select></div>
       <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeModal('modal-bestelling')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuleren</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">Opslaan</button></div>
@@ -173,7 +225,7 @@
       <button onclick="closeModal('modal-werkbon')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
     </div>
     <form id="form-werkbon" class="p-6 space-y-4">
-      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Klant</label><input type="text" name="klant" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Datum</label><input type="date" name="datum" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
+      <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Klant</label><input type="text" name="klant" list="klanten-suggesties" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Datum</label><input type="date" name="datum" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-2">Monteur(s)</label><div class="grid grid-cols-3 gap-2"><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Tony" class="rounded text-blue-600"> <span>Tony</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Davy" class="rounded text-blue-600"> <span>Davy</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Guus" class="rounded text-blue-600"> <span>Guus</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Suad" class="rounded text-blue-600"> <span>Suad</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Elbekri" class="rounded text-blue-600"> <span>Elbekri</span></label></div></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Werktijd</label><input type="text" name="werktijd" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="bijv. 09:00 - 11:30"></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Omschrijving</label><textarea name="omschrijving" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea></div>
@@ -182,6 +234,71 @@
       <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeModal('modal-werkbon')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuleren</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">Opslaan</button></div>
     </form>
   </div>
+</div>
+
+<div id="modal-klant" class="modal-overlay fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+      <h3 id="modal-klant-title" class="text-lg font-semibold text-slate-800">Klant Toevoegen</h3>
+      <button onclick="closeModal('modal-klant')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="form-klant" class="p-6 space-y-4">
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Naam</label><input type="text" name="naam" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Naam klant / bedrijf" required></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Adres</label><input type="text" name="adres" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="block text-sm font-medium text-slate-700 mb-1">Contactpersoon</label><input type="text" name="contactpersoon" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+        <div><label class="block text-sm font-medium text-slate-700 mb-1">Telefoon</label><input type="text" name="telefoon" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      </div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Notities</label><textarea name="notities" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea></div>
+      <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeModal('modal-klant')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuleren</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">Opslaan</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-product" class="modal-overlay fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+      <h3 id="modal-product-title" class="text-lg font-semibold text-slate-800">Product Toevoegen</h3>
+      <button onclick="closeModal('modal-product')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="form-product" class="p-6 space-y-4">
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Naam</label><input type="text" name="naam" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="bijv. Combisteamer Rational" required></div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="block text-sm font-medium text-slate-700 mb-1">Type</label><input type="text" name="type" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+        <div><label class="block text-sm font-medium text-slate-700 mb-1">Serienummer</label><input type="text" name="serienummer" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Foto</label>
+        <input type="file" name="foto" accept="image/*" capture="environment" class="w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
+        <p id="product-foto-huidige" class="text-xs text-slate-400 mt-1"></p>
+      </div>
+      <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeModal('modal-product')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuleren</button><button type="submit" id="form-product-submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">Opslaan</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-foto" class="modal-overlay fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+      <h3 class="text-lg font-semibold text-slate-800">Foto Toevoegen</h3>
+      <button onclick="closeModal('modal-foto')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="form-foto" class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Foto</label>
+        <input type="file" name="foto" accept="image/*" capture="environment" class="w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" required>
+      </div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Omschrijving (optioneel)</label><input type="text" name="omschrijving" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="bijv. Aansluiting achterzijde"></div>
+      <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeModal('modal-foto')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuleren</button><button type="submit" id="form-foto-submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">Opslaan</button></div>
+    </form>
+  </div>
+</div>
+
+<datalist id="klanten-suggesties"></datalist>
+
+<div id="lightbox" class="fixed inset-0 bg-black/90 z-[60] hidden items-center justify-center p-4" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" class="max-w-full max-h-full rounded-lg" alt="">
+  <button type="button" onclick="closeLightbox()" class="absolute top-4 right-4 text-white text-2xl w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10"><i class="fas fa-times"></i></button>
 </div>
 
 <script>
@@ -201,15 +318,22 @@
     afgerond: "done",             // In rules: /done/{docId}
     bestellingen: "bestellingen", // In rules: /bestellingen/{docId}
     werkbonnen: "werkbonnen",     // In rules: /werkbonnen/{docId}
-    verstuurd: "werkbonnen_verstuurd" // In rules: /werkbonnen_verstuurd/{docId}
+    verstuurd: "werkbonnen_verstuurd", // In rules: /werkbonnen_verstuurd/{docId}
+    klanten: "klanten",
+    klantProducten: "klant_producten",
+    klantFotos: "klant_fotos"
   };
 
-  let state = { openstaand: [], afgerond: [], bestellingen: [], werkbonnen: [], verstuurd: [] };
+  const STORAGE_BUCKET = "horecaconcurrent-200d5.firebasestorage.app";
+
+  let state = { openstaand: [], afgerond: [], bestellingen: [], werkbonnen: [], verstuurd: [], klanten: [], klantProducten: [], klantFotos: [] };
   let accessToken = localStorage.getItem("hc_access_token");
   let refreshToken = localStorage.getItem("hc_refresh_token");
   let currentView = "dashboard";
   let editing = { key: null, id: null };
   let pendingOpenId = null;
+  let currentKlantId = null;
+  let detailTab = "producten";
 
   const loginScreen = document.getElementById("loginScreen");
   const appContainer = document.getElementById("appContainer");
@@ -293,7 +417,9 @@
 
   async function fsUpdate(collectionKey, docId, data) {
     const collectionName = COLLECTIONS[collectionKey];
-    const res = await fetch(`${BASE_URL}/${collectionName}/${docId}`, {
+    const fieldPaths = Object.keys(data).filter(k => k !== 'id');
+    const mask = fieldPaths.map(f => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
+    const res = await fetch(`${BASE_URL}/${collectionName}/${docId}?${mask}`, {
       method: 'PATCH',
       headers: authHeaders(),
       body: JSON.stringify(toFirestore(data))
@@ -303,6 +429,58 @@
       return fsUpdate(collectionKey, docId, data);
     }
     if (!res.ok) throw new Error(`Update fout: ${res.status}`);
+  }
+
+  // ==========================================
+  // FIREBASE STORAGE (foto's)
+  // ==========================================
+
+  function compressImage(file, maxDim = 1600, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Bestand lezen mislukt"));
+      reader.onload = e => {
+        const img = new Image();
+        img.onerror = () => reject(new Error("Afbeelding laden mislukt"));
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+            else { width = Math.round(width * maxDim / height); height = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Compressie mislukt")), 'image/jpeg', quality);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadPhoto(file, folder) {
+    const blob = await compressImage(file);
+    const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const res = await fetch(`https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o?uploadType=media&name=${encodeURIComponent(path)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'image/jpeg', Authorization: `Bearer ${accessToken}` },
+      body: blob
+    });
+    if (!res.ok) throw new Error("Upload mislukt");
+    const data = await res.json();
+    const url = `https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(path)}?alt=media&token=${data.downloadTokens}`;
+    return { url, path };
+  }
+
+  async function deleteStorageFile(path) {
+    if (!path) return;
+    try {
+      await fetch(`https://firebasestorage.googleapis.com/v0/b/${STORAGE_BUCKET}/o/${encodeURIComponent(path)}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+    } catch (e) { /* best effort, telt niet als kritieke fout */ }
   }
 
   async function fsDelete(collectionKey, docId) {
@@ -431,8 +609,96 @@
       toggleTeBestellenField();
       document.getElementById("modal-werkbon-title").textContent = "Werkbon Bewerken";
       openModal("modal-werkbon");
+    } else if (key === "klanten") {
+      const f = document.getElementById("form-klant");
+      f.naam.value = item.naam || "";
+      f.adres.value = item.adres || "";
+      f.contactpersoon.value = item.contactpersoon || "";
+      f.telefoon.value = item.telefoon || "";
+      f.notities.value = item.notities || "";
+      document.getElementById("modal-klant-title").textContent = "Klant Bewerken";
+      openModal("modal-klant");
+    } else if (key === "klantProducten") {
+      const f = document.getElementById("form-product");
+      f.naam.value = item.naam || "";
+      f.type.value = item.type || "";
+      f.serienummer.value = item.serienummer || "";
+      f.foto.value = "";
+      document.getElementById("product-foto-huidige").textContent = item.fotoUrl ? "Er staat al een foto. Kies een nieuw bestand om die te vervangen." : "";
+      document.getElementById("modal-product-title").textContent = "Product Bewerken";
+      openModal("modal-product");
     }
   }
+
+  function openProductModal(id) {
+    if (id) { openEditModal("klantProducten", id); return; }
+    editing = { key: null, id: null };
+    document.getElementById("form-product").reset();
+    document.getElementById("product-foto-huidige").textContent = "";
+    document.getElementById("modal-product-title").textContent = "Product Toevoegen";
+    openModal("modal-product");
+  }
+
+  function openFotoModal() {
+    editing = { key: null, id: null };
+    document.getElementById("form-foto").reset();
+    openModal("modal-foto");
+  }
+
+  function editKlant() {
+    if (currentKlantId) openEditModal("klanten", currentKlantId);
+  }
+
+  function openLightbox(url) {
+    document.getElementById("lightbox-img").src = url;
+    document.getElementById("lightbox").classList.remove("hidden");
+  }
+  function closeLightbox() {
+    document.getElementById("lightbox").classList.add("hidden");
+    document.getElementById("lightbox-img").src = "";
+  }
+
+  // ==========================================
+  // KLANTEN NAVIGATIE
+  // ==========================================
+  function openKlantDetail(id) {
+    currentKlantId = id;
+    detailTab = "producten";
+    document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+    document.getElementById("view-klant-detail").classList.remove("hidden");
+    navLinks.forEach(l => {
+      l.classList.remove("active", "bg-slate-800", "text-blue-400");
+      l.classList.add("text-slate-300");
+    });
+    const klantenLink = document.querySelector('.nav-link[data-tab="klanten"]');
+    if (klantenLink) { klantenLink.classList.add("active", "bg-slate-800", "text-blue-400"); klantenLink.classList.remove("text-slate-300"); }
+    const k = state.klanten.find(x => x.id === id);
+    pageTitle.textContent = k ? k.naam : "Klant";
+    switchDetailTab("producten");
+    renderKlantDetail();
+    if (window.innerWidth < 768) document.getElementById("sidebar").classList.add("-translate-x-full");
+  }
+
+  function backToKlanten() {
+    currentKlantId = null;
+    activateTab("klanten");
+  }
+
+  function switchDetailTab(tab) {
+    detailTab = tab;
+    document.querySelectorAll(".detail-tab").forEach(b => {
+      const active = b.dataset.detailTab === tab;
+      b.classList.toggle("border-blue-600", active);
+      b.classList.toggle("text-blue-600", active);
+      b.classList.toggle("border-transparent", !active);
+      b.classList.toggle("text-slate-500", !active);
+    });
+    document.getElementById("detail-producten").classList.toggle("hidden", tab !== "producten");
+    document.getElementById("detail-fotos").classList.toggle("hidden", tab !== "fotos");
+    document.getElementById("detail-geschiedenis").classList.toggle("hidden", tab !== "geschiedenis");
+  }
+
+  function normNaam(s) { return (s || "").trim().toLowerCase(); }
 
   function createWerkbonFromOpen(id) {
     const item = state.openstaand.find(i => i.id === id);
@@ -470,21 +736,24 @@
     location.reload();
   });
 
+  function activateTab(tab) {
+    currentView = tab;
+    navLinks.forEach(l => {
+      l.classList.remove("active", "bg-slate-800", "text-blue-400");
+      l.classList.add("text-slate-300");
+    });
+    const link = document.querySelector(`.nav-link[data-tab="${tab}"]`);
+    if (link) { link.classList.add("active", "bg-slate-800", "text-blue-400"); link.classList.remove("text-slate-300"); }
+    pageTitle.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
+    document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+    document.getElementById(`view-${tab}`).classList.remove("hidden");
+    if(window.innerWidth < 768) document.getElementById("sidebar").classList.add("-translate-x-full");
+  }
+
   navLinks.forEach(link => {
     link.addEventListener("click", e => {
       e.preventDefault();
-      const tab = link.dataset.tab;
-      currentView = tab;
-      navLinks.forEach(l => {
-        l.classList.remove("active", "bg-slate-800", "text-blue-400");
-        l.classList.add("text-slate-300");
-      });
-      link.classList.add("active", "bg-slate-800", "text-blue-400");
-      link.classList.remove("text-slate-300");
-      pageTitle.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
-      document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
-      document.getElementById(`view-${tab}`).classList.remove("hidden");
-      if(window.innerWidth < 768) document.getElementById("sidebar").classList.add("-translate-x-full");
+      activateTab(link.dataset.tab);
     });
   });
 
@@ -502,6 +771,10 @@
       document.getElementById("form-bestelling").reset();
       document.getElementById("modal-bestelling-title").textContent = "Bestelling Toevoegen";
       openModal("modal-bestelling");
+    } else if(currentView === "klanten") {
+      document.getElementById("form-klant").reset();
+      document.getElementById("modal-klant-title").textContent = "Klant Toevoegen";
+      openModal("modal-klant");
     } else {
       document.getElementById("form-werkbon").reset();
       toggleTeBestellenField();
@@ -535,6 +808,7 @@
         const savedItem = await fsCreate("openstaand", data);
         state.openstaand.push(savedItem);
       }
+      await ensureKlantExists(data.klant);
       renderAll();
       e.target.reset();
       closeModal("modal-werkzaamheid");
@@ -562,6 +836,7 @@
         const savedItem = await fsCreate("bestellingen", data);
         state.bestellingen.push(savedItem);
       }
+      await ensureKlantExists(data.klant);
       renderAll();
       e.target.reset();
       closeModal("modal-bestelling");
@@ -623,6 +898,7 @@
           }
         }
       }
+      await ensureKlantExists(data.klant);
       renderAll();
       e.target.reset();
       closeModal("modal-werkbon");
@@ -630,6 +906,163 @@
       alert("Opslaan mislukt");
     }
   });
+
+  document.getElementById("form-klant").addEventListener("submit", async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = {
+      naam: fd.get("naam"),
+      adres: fd.get("adres"),
+      contactpersoon: fd.get("contactpersoon"),
+      telefoon: fd.get("telefoon"),
+      notities: fd.get("notities")
+    };
+    try {
+      if (editing.key === "klanten" && editing.id) {
+        await fsUpdate("klanten", editing.id, data);
+        const idx = state.klanten.findIndex(i => i.id === editing.id);
+        if (idx > -1) state.klanten[idx] = { ...state.klanten[idx], ...data };
+      } else {
+        data.volgorde = Date.now();
+        const saved = await fsCreate("klanten", data);
+        state.klanten.push(saved);
+      }
+      renderAll();
+      if (currentKlantId) renderKlantDetail();
+      e.target.reset();
+      closeModal("modal-klant");
+    } catch(err) {
+      alert("Opslaan mislukt: " + err.message);
+    }
+  });
+
+  document.getElementById("form-product").addEventListener("submit", async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const file = fd.get("foto");
+    const submitBtn = document.getElementById("form-product-submit");
+    const data = {
+      klantId: currentKlantId,
+      naam: fd.get("naam"),
+      type: fd.get("type"),
+      serienummer: fd.get("serienummer")
+    };
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Bezig...";
+    try {
+      let oldFotoPath = null;
+      if (file && file.size > 0) {
+        if (editing.key === "klantProducten" && editing.id) {
+          const oldItem = state.klantProducten.find(i => i.id === editing.id);
+          if (oldItem) oldFotoPath = oldItem.fotoPath;
+        }
+        const { url, path } = await uploadPhoto(file, `klanten/${currentKlantId}/producten`);
+        data.fotoUrl = url;
+        data.fotoPath = path;
+      }
+      if (editing.key === "klantProducten" && editing.id) {
+        await fsUpdate("klantProducten", editing.id, data);
+        if (oldFotoPath) await deleteStorageFile(oldFotoPath);
+        const idx = state.klantProducten.findIndex(i => i.id === editing.id);
+        if (idx > -1) state.klantProducten[idx] = { ...state.klantProducten[idx], ...data };
+      } else {
+        data.volgorde = Date.now();
+        const saved = await fsCreate("klantProducten", data);
+        state.klantProducten.push(saved);
+      }
+      renderKlantDetail();
+      e.target.reset();
+      document.getElementById("product-foto-huidige").textContent = "";
+      closeModal("modal-product");
+    } catch(err) {
+      alert("Opslaan mislukt: " + err.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Opslaan";
+    }
+  });
+
+  document.getElementById("form-foto").addEventListener("submit", async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const file = fd.get("foto");
+    if (!file || file.size === 0) { alert("Kies een foto."); return; }
+    const submitBtn = document.getElementById("form-foto-submit");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Bezig...";
+    try {
+      const { url, path } = await uploadPhoto(file, `klanten/${currentKlantId}/fotos`);
+      const data = {
+        klantId: currentKlantId,
+        url,
+        path,
+        omschrijving: fd.get("omschrijving") || "",
+        volgorde: Date.now()
+      };
+      const saved = await fsCreate("klantFotos", data);
+      state.klantFotos.push(saved);
+      renderKlantDetail();
+      e.target.reset();
+      closeModal("modal-foto");
+    } catch(err) {
+      alert("Uploaden mislukt: " + err.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Opslaan";
+    }
+  });
+
+  async function deleteKlant() {
+    if (!currentKlantId) return;
+    if (!confirm("Klant en alle bijbehorende producten en foto's verwijderen?")) return;
+    const id = currentKlantId;
+    try {
+      const producten = state.klantProducten.filter(p => p.klantId === id);
+      const fotos = state.klantFotos.filter(f => f.klantId === id);
+      for (const p of producten) {
+        await fsDelete("klantProducten", p.id);
+        if (p.fotoPath) await deleteStorageFile(p.fotoPath);
+      }
+      for (const f of fotos) {
+        await fsDelete("klantFotos", f.id);
+        if (f.path) await deleteStorageFile(f.path);
+      }
+      await fsDelete("klanten", id);
+      state.klantProducten = state.klantProducten.filter(p => p.klantId !== id);
+      state.klantFotos = state.klantFotos.filter(f => f.klantId !== id);
+      state.klanten = state.klanten.filter(k => k.id !== id);
+      backToKlanten();
+      renderAll();
+    } catch(err) {
+      alert("Verwijderen mislukt");
+    }
+  }
+
+  async function deleteProduct(id) {
+    if (!confirm("Product verwijderen?")) return;
+    const item = state.klantProducten.find(p => p.id === id);
+    try {
+      await fsDelete("klantProducten", id);
+      if (item && item.fotoPath) await deleteStorageFile(item.fotoPath);
+      state.klantProducten = state.klantProducten.filter(p => p.id !== id);
+      renderKlantDetail();
+    } catch(err) {
+      alert("Verwijderen mislukt");
+    }
+  }
+
+  async function deleteFoto(id) {
+    if (!confirm("Foto verwijderen?")) return;
+    const item = state.klantFotos.find(f => f.id === id);
+    try {
+      await fsDelete("klantFotos", id);
+      if (item && item.path) await deleteStorageFile(item.path);
+      state.klantFotos = state.klantFotos.filter(f => f.id !== id);
+      renderKlantDetail();
+    } catch(err) {
+      alert("Verwijderen mislukt");
+    }
+  }
 
   async function deleteItem(key, id) {
     if(!confirm("Weet je het zeker?")) return;
@@ -677,7 +1110,8 @@
       const newItem = {
         ...item,
         status: "Verstuurd",
-        verstuurdDate: new Date().toLocaleDateString('nl-NL')
+        verstuurdDate: new Date().toLocaleDateString('nl-NL'),
+        verstuurdTs: Date.now()
       };
       delete newItem.id;
       const saved = await fsCreate("verstuurd", newItem);
@@ -691,6 +1125,7 @@
 
   // RENDER
   function renderAll() {
+    document.getElementById('stat-klanten').innerText = state.klanten.length;
     document.getElementById('stat-openstaand').innerText = state.openstaand.length;
     document.getElementById('stat-afgerond').innerText = state.afgerond.length;
     document.getElementById('stat-bestellingen').innerText = state.bestellingen.length;
@@ -747,7 +1182,163 @@
                     <td class="px-6 py-4 text-right"><button onclick="deleteItem('verstuurd', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></td>
                 </tr>`, 5);
 
+    renderKlanten();
+    if (currentKlantId) renderKlantDetail();
     initSortable();
+  }
+
+  function renderKlantenSuggesties() {
+    const list = document.getElementById("klanten-suggesties");
+    if (!list) return;
+    const namen = [...new Set(state.klanten.map(k => (k.naam || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    list.innerHTML = namen.map(n => `<option value="${n}">`).join('');
+  }
+
+  async function importKlantenUitData() {
+    const namen = new Set();
+    [...state.openstaand, ...state.afgerond, ...state.bestellingen, ...state.werkbonnen, ...state.verstuurd].forEach(i => {
+      if (i.klant && i.klant.trim()) namen.add(i.klant.trim());
+    });
+    const nieuwe = [];
+    const gezien = new Set();
+    namen.forEach(n => {
+      const key = normNaam(n);
+      if (gezien.has(key)) return;
+      gezien.add(key);
+      if (!state.klanten.some(k => normNaam(k.naam) === key)) nieuwe.push(n);
+    });
+    if (!nieuwe.length) { alert("Geen nieuwe klanten gevonden — alles staat al in de lijst."); return; }
+    if (!confirm(`${nieuwe.length} klant(en) toevoegen op basis van bestaande gegevens?\n\n${nieuwe.join(", ")}`)) return;
+    try {
+      for (const naam of nieuwe) {
+        const saved = await fsCreate("klanten", { naam, volgorde: Date.now() });
+        state.klanten.push(saved);
+      }
+      renderAll();
+      alert(`${nieuwe.length} klant(en) toegevoegd.`);
+    } catch(err) {
+      alert("Importeren mislukt: " + err.message);
+    }
+  }
+
+  async function ensureKlantExists(naam) {
+    const trimmed = (naam || "").trim();
+    if (!trimmed) return;
+    const bestaat = state.klanten.some(k => normNaam(k.naam) === normNaam(trimmed));
+    if (bestaat) return;
+    try {
+      const saved = await fsCreate("klanten", { naam: trimmed, volgorde: Date.now() });
+      state.klanten.push(saved);
+      renderKlanten();
+    } catch (e) { /* best effort, telt niet als kritieke fout */ }
+  }
+
+  function renderKlanten() {
+    const grid = document.getElementById("klanten-grid");
+    const zoekInput = document.getElementById("klanten-zoek");
+    const term = normNaam(zoekInput ? zoekInput.value : "");
+    let sorted = [...state.klanten].sort((a, b) => (a.naam || '').localeCompare(b.naam || ''));
+    if (term) {
+      sorted = sorted.filter(k => [k.naam, k.adres, k.contactpersoon, k.telefoon].some(v => normNaam(v).includes(term)));
+    }
+    if (!state.klanten.length) {
+      grid.innerHTML = `<p class="col-span-full text-center text-slate-400 py-12">Nog geen klanten toegevoegd.</p>`;
+    } else if (!sorted.length) {
+      grid.innerHTML = `<p class="col-span-full text-center text-slate-400 py-12">Geen klanten gevonden voor "${zoekInput ? zoekInput.value : ''}".</p>`;
+    } else {
+      grid.innerHTML = sorted.map(k => `
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition cursor-pointer" onclick="openKlantDetail('${k.id}')">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="font-semibold text-slate-800 truncate">${k.naam || '-'}</h3>
+                            ${k.adres ? `<p class="text-xs text-slate-400 mt-1 truncate"><i class="fas fa-map-marker-alt mr-1"></i>${k.adres}</p>` : ''}
+                            ${k.contactpersoon ? `<p class="text-xs text-slate-400 mt-1 truncate"><i class="fas fa-user mr-1"></i>${k.contactpersoon}</p>` : ''}
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0"><i class="fas fa-store"></i></div>
+                    </div>
+                </div>`).join('');
+    }
+    renderKlantenSuggesties();
+  }
+
+  function renderKlantDetail() {
+    const k = state.klanten.find(x => x.id === currentKlantId);
+    if (!k) return;
+    document.getElementById("klant-detail-naam").textContent = k.naam || "-";
+    document.getElementById("klant-detail-adres").innerHTML = k.adres ? `<i class="fas fa-map-marker-alt mr-1"></i>${k.adres}` : "";
+    const contactBits = [k.contactpersoon, k.telefoon].filter(Boolean).join(" · ");
+    document.getElementById("klant-detail-contact").innerHTML = contactBits ? `<i class="fas fa-user mr-1"></i>${contactBits}` : "";
+
+    const producten = state.klantProducten.filter(p => p.klantId === currentKlantId);
+    const productenGrid = document.getElementById("producten-grid");
+    productenGrid.innerHTML = producten.length ? producten.map(p => `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="aspect-video bg-slate-100 flex items-center justify-center overflow-hidden ${p.fotoUrl ? 'cursor-pointer' : ''}" ${p.fotoUrl ? `onclick="openLightbox('${p.fotoUrl}')"` : ''}>
+                        ${p.fotoUrl ? `<img src="${p.fotoUrl}" class="w-full h-full object-cover" alt="${p.naam || ''}">` : `<i class="fas fa-image text-slate-300 text-3xl"></i>`}
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-semibold text-slate-800">${p.naam || '-'}</h4>
+                        <p class="text-xs text-slate-500 mt-1">${p.type || '-'}</p>
+                        <p class="text-xs text-slate-400">S/N: ${p.serienummer || '-'}</p>
+                        <div class="print-hide flex justify-end space-x-1 mt-2">
+                            <button onclick="openProductModal('${p.id}')" title="Bewerken" class="action-btn text-blue-600 hover:text-blue-800"><i class="fas fa-pen"></i></button>
+                            <button onclick="deleteProduct('${p.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`).join('') : `<p class="col-span-full text-center text-slate-400 py-12">Nog geen producten toegevoegd.</p>`;
+
+    const standaloneFotos = state.klantFotos.filter(f => f.klantId === currentKlantId).map(f => ({ url: f.url, label: f.omschrijving || "Algemeen", id: f.id, deletable: true }));
+    const productFotos = producten.filter(p => p.fotoUrl).map(p => ({ url: p.fotoUrl, label: p.naam || "Product", id: null, deletable: false }));
+    const alleFotos = [...productFotos, ...standaloneFotos];
+    const fotosGrid = document.getElementById("fotos-grid");
+    fotosGrid.innerHTML = alleFotos.length ? alleFotos.map(f => `
+                <div class="relative rounded-lg overflow-hidden border border-slate-100 aspect-square cursor-pointer" onclick="openLightbox('${f.url}')">
+                    <img src="${f.url}" class="w-full h-full object-cover" alt="${f.label}">
+                    <div class="absolute bottom-0 inset-x-0 bg-black/60 text-white text-xs px-2 py-1 truncate">${f.label}</div>
+                    ${f.deletable ? `<button onclick="event.stopPropagation(); deleteFoto('${f.id}')" title="Verwijderen" class="print-hide absolute top-1 right-1 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-red-600"><i class="fas fa-trash text-xs"></i></button>` : ''}
+                </div>`).join('') : `<p class="col-span-full text-center text-slate-400 py-12">Nog geen foto's.</p>`;
+
+    renderKlantGeschiedenis(k);
+  }
+
+  function renderKlantGeschiedenis(k) {
+    const naam = normNaam(k.naam);
+    const werkbonnenHist = state.verstuurd.filter(i => normNaam(i.klant) === naam).map(i => ({ type: 'werkbon', ts: i.verstuurdTs || i.volgorde || 0, data: i }));
+    const werkzaamhedenHist = state.afgerond.filter(i => normNaam(i.klant) === naam).map(i => ({ type: 'werkzaamheid', ts: i.doneTs || 0, data: i }));
+    const combined = [...werkbonnenHist, ...werkzaamhedenHist].sort((a, b) => b.ts - a.ts);
+
+    const list = document.getElementById("geschiedenis-lijst");
+    list.innerHTML = combined.length ? combined.map(h => {
+      const i = h.data;
+      if (h.type === 'werkbon') {
+        return `
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0"><i class="fas fa-file-invoice"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-sm font-semibold text-slate-800">Werkbon</p>
+                            <p class="text-xs text-slate-400 whitespace-nowrap">${i.datum || '-'}</p>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-1">${i.omschrijving || '-'}</p>
+                        ${i.materialen ? `<p class="text-xs text-slate-400 mt-1"><i class="fas fa-box mr-1"></i>${i.materialen}</p>` : ''}
+                        ${i.monteurs ? `<p class="text-xs text-slate-400 mt-1"><i class="fas fa-user-hard-hat mr-1"></i>${i.monteurs}</p>` : ''}
+                        <p class="text-xs text-emerald-600 mt-1"><i class="fas fa-paper-plane mr-1"></i>Verstuurd ${i.verstuurdDate || ''}</p>
+                    </div>
+                </div>`;
+      }
+      return `
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center flex-shrink-0"><i class="fas fa-check-circle"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-sm font-semibold text-slate-800">Werkzaamheid</p>
+                            <p class="text-xs text-slate-400 whitespace-nowrap">${i.datum || '-'}</p>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-1">${i.todo || '-'}</p>
+                        <p class="text-xs text-emerald-600 mt-1"><i class="fas fa-check mr-1"></i>Afgerond ${i.doneDate || ''}</p>
+                    </div>
+                </div>`;
+    }).join('') : `<p class="text-center text-slate-400 py-12">Nog geen eerdere werkzaamheden gevonden voor deze klant.</p>`;
   }
 
   function renderTable(id, data, template, cols) {
