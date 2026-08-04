@@ -67,6 +67,7 @@
   .badge-status.ontvangen { background: #d4edda; color: #155724; }
   .badge-status.terugkomen { background: #fde2e2; color: #b94040; }
   .badge-status.nogbestellen { background: #fde2e2; color: #b94040; }
+  .badge-status.opgevraagd { background: #dbe9fb; color: #185fa5; }
   .check-gemaakt { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; cursor: pointer; user-select: none; }
   .check-gemaakt input { width: 15px; height: 15px; cursor: pointer; }
   .check-list { display: flex; flex-wrap: wrap; gap: 10px 16px; }
@@ -273,6 +274,7 @@
       <div><label>Status</label>
         <select id="b-status">
           <option value="Nog bestellen">Nog bestellen</option>
+          <option value="Opgevraagd">Onderdeel opgevraagd (wachten op bevestiging)</option>
           <option value="Besteld">Besteld – wachten op levering</option>
           <option value="Ontvangen">Ontvangen – klaar voor montage</option>
         </select>
@@ -572,7 +574,8 @@ function renderBestel() {
       <td style="font-size:12px;">${r.klant}</td>
       <td><span class="badge-status ${bestelClass(r.status)}">${r.status}</span></td>
       <td><div class="actions">
-        ${r.status==='Nog bestellen'?`<button class="btn-sm ontvangen" onclick="markBesteld('${r.id}')">→ Besteld</button>`:''}
+        ${r.status==='Nog bestellen'?`<button class="btn-sm ontvangen" onclick="markOpgevraagd('${r.id}')">→ Opgevraagd</button>`:''}
+        ${r.status==='Opgevraagd'?`<button class="btn-sm ontvangen" onclick="markBesteld('${r.id}')">→ Besteld</button>`:''}
         ${r.status==='Besteld'?`<button class="btn-sm ontvangen" onclick="markOntvangen('${r.id}')">✓ Ontvangen</button>`:''}
         <button class="btn-sm edit" onclick="editBestel('${r.id}')">Bewerken</button>
         <button class="btn-sm del" onclick="deleteBestel('${r.id}')">Verwijder</button>
@@ -581,7 +584,7 @@ function renderBestel() {
 }
 
 function bestelClass(status) {
-  return status==='Ontvangen' ? 'ontvangen' : status==='Nog bestellen' ? 'nogbestellen' : 'besteld';
+  return status==='Ontvangen' ? 'ontvangen' : status==='Nog bestellen' ? 'nogbestellen' : status==='Opgevraagd' ? 'opgevraagd' : 'besteld';
 }
 
 window.markOntvangen = async function(id) {
@@ -591,6 +594,10 @@ window.markOntvangen = async function(id) {
 window.markBesteld = async function(id) {
   setSyncStatus('syncing');
   try { await updateDoc(doc(db,'bestellingen',id),{status:'Besteld'}); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
+};
+window.markOpgevraagd = async function(id) {
+  setSyncStatus('syncing');
+  try { await updateDoc(doc(db,'bestellingen',id),{status:'Opgevraagd'}); setSyncStatus('ok'); } catch(e) { setSyncStatus('error'); }
 };
 window.deleteBestel = async function(id) {
   if (!confirm('Bestelling verwijderen?')) return;
@@ -731,8 +738,8 @@ function openBestelModal(id) {
   document.getElementById('modal-bestel-title').textContent = bestelEditId?'Bestelling bewerken':'Bestelling toevoegen';
   if (bestelEditId) {
     const r = bestelData.find(r=>r.id===bestelEditId);
-    if (r) { document.getElementById('b-leverancier').value=r.leverancier||''; document.getElementById('b-onderdeel').value=r.onderdeel||''; document.getElementById('b-klant').value=r.klant||''; document.getElementById('b-status').value=r.status||'Besteld'; }
-  } else { ['b-leverancier','b-onderdeel','b-klant'].forEach(id=>document.getElementById(id).value=''); document.getElementById('b-status').value='Besteld'; }
+    if (r) { document.getElementById('b-leverancier').value=r.leverancier||''; document.getElementById('b-onderdeel').value=r.onderdeel||''; document.getElementById('b-klant').value=r.klant||''; document.getElementById('b-status').value=r.status||'Opgevraagd'; }
+  } else { ['b-leverancier','b-onderdeel','b-klant'].forEach(id=>document.getElementById(id).value=''); document.getElementById('b-status').value='Opgevraagd'; }
   document.getElementById('overlay-bestel').classList.add('open');
   setTimeout(()=>document.getElementById('b-leverancier').focus(),100);
 }
@@ -854,7 +861,7 @@ window.saveWerkbon = async function() {
       }
     }
     if (isNieuw && entry.vervolgactie==='Bestellen' && entry.teBestellenMaterialen) {
-      await addDoc(collection(db,'bestellingen'),{leverancier:'',onderdeel:entry.teBestellenMaterialen,klant:entry.klant,status:'Nog bestellen'});
+      await addDoc(collection(db,'bestellingen'),{leverancier:'',onderdeel:entry.teBestellenMaterialen,klant:entry.klant,status:'Opgevraagd'});
     }
     setSyncStatus('ok');
   } catch(e) { setSyncStatus('error'); return; }
