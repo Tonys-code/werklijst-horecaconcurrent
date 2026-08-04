@@ -410,6 +410,7 @@ function startListeners() {
   }));
   unsubscribers.push(onSnapshot(collection(db,'bestellingen'), snap => {
     bestelData = snap.docs.map(d=>({id:d.id,...d.data()}));
+    bestelData.sort((a,b)=>(b.createdTs??0)-(a.createdTs??0));
     renderBestel(); updateBadges();
   }));
   unsubscribers.push(onSnapshot(collection(db,'werkbonnen'), snap => {
@@ -750,7 +751,7 @@ window.saveBestel = async function() {
   setSyncStatus('syncing');
   try {
     if (bestelEditId) { await updateDoc(doc(db,'bestellingen',bestelEditId),entry); }
-    else { await addDoc(collection(db,'bestellingen'),entry); }
+    else { entry.createdTs=Date.now(); await addDoc(collection(db,'bestellingen'),entry); }
     setSyncStatus('ok');
   } catch(e) { setSyncStatus('error'); return; }
   closeModal('overlay-bestel');
@@ -861,7 +862,7 @@ window.saveWerkbon = async function() {
       }
     }
     if (isNieuw && entry.vervolgactie==='Bestellen' && entry.teBestellenMaterialen) {
-      await addDoc(collection(db,'bestellingen'),{leverancier:'',onderdeel:entry.teBestellenMaterialen,klant:entry.klant,status:'Opgevraagd'});
+      await addDoc(collection(db,'bestellingen'),{leverancier:'',onderdeel:entry.teBestellenMaterialen,klant:entry.klant,status:'Opgevraagd',createdTs:Date.now()});
     }
     setSyncStatus('ok');
   } catch(e) { setSyncStatus('error'); return; }
