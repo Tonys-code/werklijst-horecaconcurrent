@@ -6,6 +6,32 @@
   <title>Horeca Concurrent – Werklijst</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            blue: {
+              50: '#eef1f9',
+              100: '#dce3f3',
+              200: '#b9c7e6',
+              300: '#8fa4d3',
+              400: '#5c78b0',
+              500: '#3a5798',
+              600: '#264489',
+              700: '#1e3770',
+              800: '#182c5c',
+              900: '#13234a'
+            },
+            brand: {
+              DEFAULT: '#a2d265',
+              light: '#c3e498'
+            }
+          }
+        }
+      }
+    };
+  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
@@ -46,7 +72,7 @@
 <div id="loginScreen" class="fixed inset-0 bg-slate-900 bg-opacity-95 flex items-center justify-center z-50 transition-opacity duration-500">
   <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md fade-in">
     <div class="text-center mb-6">
-      <h1 class="text-3xl font-bold text-slate-800">Horeca<span class="text-blue-600">Concurrent</span></h1>
+      <h1 class="text-3xl font-bold text-slate-800">Horeca<span class="text-brand">Concurrent</span></h1>
       <p class="text-slate-500 mt-1">Werklijst & Bestellingen</p>
     </div>
     <form id="loginForm" class="space-y-4">
@@ -71,7 +97,7 @@
 <div id="appContainer" class="flex h-screen overflow-hidden opacity-0 transition-opacity duration-500 hidden">
   <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col shadow-xl md:shadow-none">
     <div class="p-6 border-b border-slate-800 flex items-center justify-between">
-      <h1 class="text-xl font-bold text-blue-400">Horeca<span class="text-white">Concurrent</span></h1>
+      <h1 class="text-xl font-bold text-brand">Horeca<span class="text-white">Concurrent</span></h1>
       <button id="closeSidebar" class="md:hidden text-slate-400 hover:text-white"><i class="fas fa-times"></i></button>
     </div>
     <nav class="flex-1 overflow-y-auto p-4 space-y-1">
@@ -105,12 +131,12 @@
       <!-- DASHBOARD -->
       <div id="view-dashboard" class="view fade-in">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
-          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Klanten</p><p id="stat-klanten" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl"><i class="fas fa-users"></i></div></div></div>
-          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Openstaand</p><p id="stat-openstaand" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-xl"><i class="fas fa-tasks"></i></div></div></div>
-          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Afgerond</p><p id="stat-afgerond" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div></div></div>
-          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Bestellingen</p><p id="stat-bestellingen" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl"><i class="fas fa-box"></i></div></div></div>
-          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Werkbonnen</p><p id="stat-werkbonnen" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-xl"><i class="fas fa-file-invoice"></i></div></div></div>
-          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Verstuurd</p><p id="stat-verstuurd" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl"><i class="fas fa-paper-plane"></i></div></div></div>
+          <div onclick="activateTab('klanten')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Klanten</p><p id="stat-klanten" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl"><i class="fas fa-users"></i></div></div></div>
+          <div onclick="activateTab('openstaand')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Openstaand</p><p id="stat-openstaand" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-xl"><i class="fas fa-tasks"></i></div></div></div>
+          <div onclick="activateTab('afgerond')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Afgerond</p><p id="stat-afgerond" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div></div></div>
+          <div onclick="activateTab('bestellingen')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Bestellingen</p><p id="stat-bestellingen" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl"><i class="fas fa-box"></i></div></div></div>
+          <div onclick="activateTab('werkbonnen')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Werkbonnen</p><p id="stat-werkbonnen" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-xl"><i class="fas fa-file-invoice"></i></div></div></div>
+          <div onclick="activateTab('verstuurd')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Verstuurd</p><p id="stat-verstuurd" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl"><i class="fas fa-paper-plane"></i></div></div></div>
         </div>
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 text-center">
           <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 text-3xl"><i class="fas fa-clipboard-list"></i></div>
@@ -700,6 +726,17 @@
 
   function normNaam(s) { return (s || "").trim().toLowerCase(); }
 
+  function formatDatumKort(iso) {
+    if (!iso) return '';
+    const parts = iso.split('-');
+    if (parts.length !== 3) return iso;
+    return `${parts[2]}-${parts[1]}`;
+  }
+
+  function stripJaar(str) {
+    return (str || '').replace(/-\d{4}$/, '');
+  }
+
   function createWerkbonFromOpen(id) {
     const item = state.openstaand.find(i => i.id === id);
     if (!item) return;
@@ -764,7 +801,9 @@
     editing = { key: null, id: null };
     pendingOpenId = null;
     if(["openstaand", "dashboard", "afgerond"].includes(currentView)) {
-      document.getElementById("form-werkzaamheid").reset();
+      const f = document.getElementById("form-werkzaamheid");
+      f.reset();
+      f.datum.value = new Date().toISOString().slice(0, 10);
       document.getElementById("modal-werkzaamheid-title").textContent = "Werkzaamheid Toevoegen";
       openModal("modal-werkzaamheid");
     } else if(currentView === "bestellingen") {
@@ -776,7 +815,9 @@
       document.getElementById("modal-klant-title").textContent = "Klant Toevoegen";
       openModal("modal-klant");
     } else {
-      document.getElementById("form-werkbon").reset();
+      const f = document.getElementById("form-werkbon");
+      f.reset();
+      f.datum.value = new Date().toISOString().slice(0, 10);
       toggleTeBestellenField();
       document.getElementById("modal-werkbon-title").textContent = "Werkbon Toevoegen";
       openModal("modal-werkbon");
@@ -1139,7 +1180,7 @@
                         ${i.locatie ? `<div class="text-xs font-normal text-slate-400 mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${i.locatie}</div>` : ''}
                         ${i.note ? `<div class="text-xs font-normal text-amber-600 mt-0.5"><i class="fas fa-exclamation-triangle mr-1"></i>${i.note}</div>` : ''}
                     </td>
-                    <td class="px-6 py-4">${i.datum || '-'}</td>
+                    <td class="px-6 py-4">${formatDatumKort(i.datum) || '-'}</td>
                     <td class="px-6 py-4">${i.todo || '-'}</td>
                     <td class="px-6 py-4 text-right space-x-1">
                         <button onclick="createWerkbonFromOpen('${i.id}')" title="Werkbon maken" class="action-btn text-purple-600 hover:text-purple-800"><i class="fas fa-file-invoice"></i></button>
@@ -1153,7 +1194,7 @@
                 <tr>
                     <td class="px-6 py-4">${i.klant || '-'}</td>
                     <td class="px-6 py-4">${i.todo || '-'}</td>
-                    <td class="px-6 py-4">${i.doneDate || '-'}</td>
+                    <td class="px-6 py-4">${stripJaar(i.doneDate) || '-'}</td>
                     <td class="px-6 py-4 text-right"><button onclick="deleteItem('afgerond', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></td>
                 </tr>`, 4);
     renderTable('tbody-bestellingen', state.bestellingen, i => `
@@ -1167,7 +1208,7 @@
                 </tr>`, 5);
     renderTable('tbody-werkbonnen', state.werkbonnen, i => `
                 <tr>
-                    <td class="px-6 py-4">${i.klant || '-'}</td><td class="px-6 py-4">${i.datum || '-'}</td><td class="px-6 py-4">${i.omschrijving||'-'}</td>
+                    <td class="px-6 py-4">${i.klant || '-'}</td><td class="px-6 py-4">${formatDatumKort(i.datum) || '-'}</td><td class="px-6 py-4">${i.omschrijving||'-'}</td>
                     <td class="px-6 py-4">${i.materialen||'-'}</td><td class="px-6 py-4">${i.vervolgactie||'-'}</td>
                     <td class="px-6 py-4"><span class="px-2 py-1 text-xs rounded-full bg-slate-100 text-slate-700">${i.status || 'Concept'}</span></td>
                     <td class="px-6 py-4 text-right space-x-1">
@@ -1178,7 +1219,7 @@
                 </tr>`, 7);
     renderTable('tbody-verstuurd', state.verstuurd, i => `
                 <tr>
-                    <td class="px-6 py-4">${i.klant || '-'}</td><td class="px-6 py-4">${i.datum || '-'}</td><td class="px-6 py-4">${i.omschrijving||'-'}</td><td class="px-6 py-4">${i.verstuurdDate || '-'}</td>
+                    <td class="px-6 py-4">${i.klant || '-'}</td><td class="px-6 py-4">${formatDatumKort(i.datum) || '-'}</td><td class="px-6 py-4">${i.omschrijving||'-'}</td><td class="px-6 py-4">${stripJaar(i.verstuurdDate) || '-'}</td>
                     <td class="px-6 py-4 text-right"><button onclick="deleteItem('verstuurd', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></td>
                 </tr>`, 5);
 
@@ -1317,12 +1358,12 @@
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center justify-between gap-2">
                             <p class="text-sm font-semibold text-slate-800">Werkbon</p>
-                            <p class="text-xs text-slate-400 whitespace-nowrap">${i.datum || '-'}</p>
+                            <p class="text-xs text-slate-400 whitespace-nowrap">${formatDatumKort(i.datum) || '-'}</p>
                         </div>
                         <p class="text-sm text-slate-600 mt-1">${i.omschrijving || '-'}</p>
                         ${i.materialen ? `<p class="text-xs text-slate-400 mt-1"><i class="fas fa-box mr-1"></i>${i.materialen}</p>` : ''}
                         ${i.monteurs ? `<p class="text-xs text-slate-400 mt-1"><i class="fas fa-user-hard-hat mr-1"></i>${i.monteurs}</p>` : ''}
-                        <p class="text-xs text-emerald-600 mt-1"><i class="fas fa-paper-plane mr-1"></i>Verstuurd ${i.verstuurdDate || ''}</p>
+                        <p class="text-xs text-emerald-600 mt-1"><i class="fas fa-paper-plane mr-1"></i>Verstuurd ${stripJaar(i.verstuurdDate)}</p>
                     </div>
                 </div>`;
       }
@@ -1332,10 +1373,10 @@
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center justify-between gap-2">
                             <p class="text-sm font-semibold text-slate-800">Werkzaamheid</p>
-                            <p class="text-xs text-slate-400 whitespace-nowrap">${i.datum || '-'}</p>
+                            <p class="text-xs text-slate-400 whitespace-nowrap">${formatDatumKort(i.datum) || '-'}</p>
                         </div>
                         <p class="text-sm text-slate-600 mt-1">${i.todo || '-'}</p>
-                        <p class="text-xs text-emerald-600 mt-1"><i class="fas fa-check mr-1"></i>Afgerond ${i.doneDate || ''}</p>
+                        <p class="text-xs text-emerald-600 mt-1"><i class="fas fa-check mr-1"></i>Afgerond ${stripJaar(i.doneDate)}</p>
                     </div>
                 </div>`;
     }).join('') : `<p class="text-center text-slate-400 py-12">Nog geen eerdere werkzaamheden gevonden voor deze klant.</p>`;
