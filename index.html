@@ -196,7 +196,10 @@
       <!-- TABLES -->
       <div id="view-openstaand" class="view hidden">
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="print-hide px-6 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between"><p class="text-sm text-slate-600"><i class="fas fa-grip-vertical text-slate-400 mr-2"></i>Sleep een rij om de volgorde te wijzigen</p></div>
+          <div class="print-hide px-6 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3">
+            <p id="openstaand-hint" class="text-sm text-slate-600"><i class="fas fa-grip-vertical text-slate-400 mr-2"></i>Sleep een rij om de volgorde te wijzigen</p>
+            <button type="button" id="openstaand-sort-btn" onclick="toggleOpenstaandSort()" class="text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 hover:bg-slate-50 transition flex-shrink-0"><i class="fas fa-sort"></i><span>Sorteer op datum</span></button>
+          </div>
           <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-xs"><tr><th class="px-4 py-3 w-10"></th><th class="px-6 py-3">Klant</th><th class="px-6 py-3">Datum</th><th class="px-6 py-3">Werkzaamheden</th><th class="px-6 py-3 text-right">Acties</th></tr></thead><tbody id="tbody-openstaand" class="divide-y divide-slate-100 text-slate-600 bg-white"></tbody></table></div>
         </div>
       </div>
@@ -360,6 +363,7 @@
   let pendingOpenId = null;
   let currentKlantId = null;
   let detailTab = "producten";
+  let openstaandDatumSort = null; // null | 'asc' | 'desc'
 
   const loginScreen = document.getElementById("loginScreen");
   const appContainer = document.getElementById("appContainer");
@@ -735,6 +739,28 @@
 
   function stripJaar(str) {
     return (str || '').replace(/-\d{4}$/, '');
+  }
+
+  function toggleOpenstaandSort() {
+    openstaandDatumSort = openstaandDatumSort === null ? 'asc' : openstaandDatumSort === 'asc' ? 'desc' : null;
+    updateOpenstaandSortUI();
+    renderAll();
+  }
+
+  function updateOpenstaandSortUI() {
+    const btn = document.getElementById('openstaand-sort-btn');
+    const hint = document.getElementById('openstaand-hint');
+    if (!btn || !hint) return;
+    if (openstaandDatumSort === 'asc') {
+      btn.innerHTML = '<i class="fas fa-sort-up"></i><span>Datum: oud → nieuw</span>';
+      hint.innerHTML = '<i class="fas fa-calendar text-slate-400 mr-2"></i>Gesorteerd op datum — slepen staat uit';
+    } else if (openstaandDatumSort === 'desc') {
+      btn.innerHTML = '<i class="fas fa-sort-down"></i><span>Datum: nieuw → oud</span>';
+      hint.innerHTML = '<i class="fas fa-calendar text-slate-400 mr-2"></i>Gesorteerd op datum — slepen staat uit';
+    } else {
+      btn.innerHTML = '<i class="fas fa-sort"></i><span>Sorteer op datum</span>';
+      hint.innerHTML = '<i class="fas fa-grip-vertical text-slate-400 mr-2"></i>Sleep een rij om de volgorde te wijzigen';
+    }
   }
 
   function createWerkbonFromOpen(id) {
@@ -1173,7 +1199,15 @@
     document.getElementById('stat-werkbonnen').innerText = state.werkbonnen.length;
     document.getElementById('stat-verstuurd').innerText = state.verstuurd.length;
 
-    renderTable('tbody-openstaand', state.openstaand, i => `
+    let openstaandWeergave = state.openstaand;
+    if (openstaandDatumSort) {
+      openstaandWeergave = [...state.openstaand].sort((a, b) => {
+        const da = a.datum || '';
+        const db = b.datum || '';
+        return openstaandDatumSort === 'asc' ? da.localeCompare(db) : db.localeCompare(da);
+      });
+    }
+    renderTable('tbody-openstaand', openstaandWeergave, i => `
                 <tr class="hover:bg-slate-50 transition group" data-id="${i.id}">
                     <td class="px-4 py-4 text-center cursor-move text-slate-300 group-hover:text-slate-500"><i class="fas fa-grip-vertical"></i></td>
                     <td class="px-6 py-4 font-medium text-slate-800">${i.klant || '-'}
@@ -1410,6 +1444,9 @@
           }
         }
       });
+    }
+    if (el && el.sortableInstance) {
+      el.sortableInstance.option('disabled', openstaandDatumSort !== null);
     }
   }
 
