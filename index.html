@@ -61,7 +61,6 @@
       main, .flex-1.overflow-y-auto { display: block !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
       #view-dashboard .grid { display: none !important; }
       .view table th:last-child, .view table td:last-child { display: none !important; }
-      #view-openstaand table th:first-child, #view-openstaand table td:first-child { display: none !important; }
       .rounded-xl, .shadow-sm, .shadow-md { box-shadow: none !important; border-radius: 0 !important; }
     }
   </style>
@@ -195,13 +194,11 @@
 
       <!-- TABLES -->
       <div id="view-openstaand" class="view hidden">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="print-hide px-6 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3">
-            <p id="openstaand-hint" class="text-sm text-slate-600"><i class="fas fa-grip-vertical text-slate-400 mr-2"></i>Sleep een rij om de volgorde te wijzigen</p>
-            <button type="button" id="openstaand-sort-btn" onclick="toggleOpenstaandSort()" class="text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 hover:bg-slate-50 transition flex-shrink-0"><i class="fas fa-sort"></i><span>Sorteer op datum</span></button>
-          </div>
-          <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-xs"><tr><th class="px-4 py-3 w-10"></th><th class="px-6 py-3">Klant</th><th class="px-6 py-3">Datum</th><th class="px-6 py-3">Werkzaamheden</th><th class="px-6 py-3 text-right">Acties</th></tr></thead><tbody id="tbody-openstaand" class="divide-y divide-slate-100 text-slate-600 bg-white"></tbody></table></div>
+        <div class="print-hide bg-white rounded-xl border border-slate-100 shadow-sm px-4 sm:px-6 py-3 mb-4 flex items-center justify-between gap-3 flex-wrap">
+          <p id="openstaand-hint" class="text-sm text-slate-600"><i class="fas fa-grip-vertical text-slate-400 mr-2"></i>Sleep een rij om de volgorde te wijzigen</p>
+          <button type="button" id="openstaand-sort-btn" onclick="toggleOpenstaandSort()" class="text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 hover:bg-slate-50 transition flex-shrink-0"><i class="fas fa-sort"></i><span>Sorteer op datum</span></button>
         </div>
+        <div id="tbody-openstaand" class="space-y-3"></div>
       </div>
 
       <div id="view-afgerond" class="view hidden"><div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-xs"><tr><th class="px-6 py-3">Klant</th><th class="px-6 py-3">Werkzaamheden</th><th class="px-6 py-3">Afgerond</th><th class="px-6 py-3 text-right">Acties</th></tr></thead><tbody id="tbody-afgerond" class="divide-y divide-slate-100 text-slate-600 bg-white"></tbody></table></div></div></div>
@@ -1207,22 +1204,28 @@
         return openstaandDatumSort === 'asc' ? da.localeCompare(db) : db.localeCompare(da);
       });
     }
-    renderTable('tbody-openstaand', openstaandWeergave, i => `
-                <tr class="hover:bg-slate-50 transition group" data-id="${i.id}">
-                    <td class="px-4 py-4 text-center cursor-move text-slate-300 group-hover:text-slate-500"><i class="fas fa-grip-vertical"></i></td>
-                    <td class="px-6 py-4 font-medium text-slate-800">${i.klant || '-'}
-                        ${i.locatie ? `<div class="text-xs font-normal text-slate-400 mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${i.locatie}</div>` : ''}
-                        ${i.note ? `<div class="text-xs font-normal text-amber-600 mt-0.5"><i class="fas fa-exclamation-triangle mr-1"></i>${i.note}</div>` : ''}
-                    </td>
-                    <td class="px-6 py-4">${formatDatumKort(i.datum) || '-'}</td>
-                    <td class="px-6 py-4">${i.todo || '-'}</td>
-                    <td class="px-6 py-4 text-right space-x-1">
-                        <button onclick="createWerkbonFromOpen('${i.id}')" title="Werkbon maken" class="action-btn text-purple-600 hover:text-purple-800"><i class="fas fa-file-invoice"></i></button>
-                        <button onclick="moveToAfgerond('${i.id}')" title="Afgerond" class="action-btn text-emerald-600 hover:text-emerald-800"><i class="fas fa-check"></i></button>
-                        <button onclick="openEditModal('openstaand', '${i.id}')" title="Bewerken" class="action-btn text-blue-600 hover:text-blue-800"><i class="fas fa-pen"></i></button>
-                        <button onclick="deleteItem('openstaand', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>`, 5);
+    const openstaandBody = document.getElementById('tbody-openstaand');
+    openstaandBody.innerHTML = openstaandWeergave.length ? openstaandWeergave.map(i => `
+                <div class="bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition flex items-stretch gap-0" data-id="${i.id}">
+                    <div class="print-hide cursor-move text-slate-300 hover:text-slate-500 flex items-center justify-center px-3 flex-shrink-0 border-r border-slate-50"><i class="fas fa-grip-vertical"></i></div>
+                    <div class="min-w-0 flex-1 p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <h4 class="font-semibold text-slate-800 truncate">${i.klant || '-'}</h4>
+                                ${i.locatie ? `<p class="text-xs text-slate-400 mt-0.5 truncate"><i class="fas fa-map-marker-alt mr-1"></i>${i.locatie}</p>` : ''}
+                            </div>
+                            <span class="text-xs font-medium text-slate-500 bg-slate-50 px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap">${formatDatumKort(i.datum) || '-'}</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2 leading-relaxed">${i.todo || '-'}</p>
+                        ${i.note ? `<p class="text-xs text-amber-600 mt-2"><i class="fas fa-exclamation-triangle mr-1"></i>${i.note}</p>` : ''}
+                        <div class="print-hide flex flex-wrap items-center gap-1 mt-3 pt-3 border-t border-slate-100">
+                            <button onclick="createWerkbonFromOpen('${i.id}')" title="Werkbon maken" class="action-btn text-purple-600 hover:text-purple-800"><i class="fas fa-file-invoice"></i></button>
+                            <button onclick="moveToAfgerond('${i.id}')" title="Afgerond" class="action-btn text-emerald-600 hover:text-emerald-800"><i class="fas fa-check"></i></button>
+                            <button onclick="openEditModal('openstaand', '${i.id}')" title="Bewerken" class="action-btn text-blue-600 hover:text-blue-800"><i class="fas fa-pen"></i></button>
+                            <button onclick="deleteItem('openstaand', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`).join('') : `<div class="bg-white rounded-xl border border-slate-100 shadow-sm text-center text-slate-400 py-16">Geen openstaande werkzaamheden 🎉</div>`;
 
     renderTable('tbody-afgerond', state.afgerond, i => `
                 <tr>
