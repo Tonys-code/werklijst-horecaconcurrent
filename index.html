@@ -63,11 +63,12 @@
       .view table th:last-child, .view table td:last-child { display: none !important; }
       .rounded-xl, .shadow-sm, .shadow-md { box-shadow: none !important; border-radius: 0 !important; }
 
-      #tbody-openstaand, #tbody-bestellingen, #tbody-werkbonnen { display: block !important; }
+      #tbody-openstaand, #tbody-bestellingen, #tbody-werkbonnen, #tbody-kutklusjes { display: block !important; }
       #tbody-openstaand > div, #tbody-bestellingen > div, #tbody-werkbonnen > div { display: flex !important; flex-direction: column !important; border: none !important; border-bottom: 1px solid #e2e8f0 !important; border-radius: 0 !important; margin: 0 !important; break-inside: avoid; page-break-inside: avoid; }
-      #tbody-openstaand .p-4, #tbody-bestellingen .p-4, #tbody-werkbonnen .p-4 { padding: 5px 8px !important; }
+      #tbody-kutklusjes > div { border: none !important; border-bottom: 1px solid #e2e8f0 !important; border-radius: 0 !important; margin: 0 !important; break-inside: avoid; page-break-inside: avoid; }
+      #tbody-openstaand .p-4, #tbody-bestellingen .p-4, #tbody-werkbonnen .p-4, #tbody-kutklusjes .p-4 { padding: 5px 8px !important; }
       #tbody-openstaand h4, #tbody-bestellingen h4, #tbody-werkbonnen h4 { font-size: 11px !important; line-height: 1.3 !important; }
-      #tbody-openstaand p, #tbody-bestellingen p, #tbody-werkbonnen p { font-size: 10px !important; line-height: 1.3 !important; margin-top: 1px !important; }
+      #tbody-openstaand p, #tbody-bestellingen p, #tbody-werkbonnen p, #tbody-kutklusjes p { font-size: 10px !important; line-height: 1.3 !important; margin-top: 1px !important; }
       #tbody-openstaand span, #tbody-bestellingen span, #tbody-werkbonnen span { font-size: 9px !important; padding: 1px 6px !important; }
     }
   </style>
@@ -114,6 +115,7 @@
       <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="werkbonnen"><i class="fas fa-file-invoice w-5"></i><span>Werkbonnen</span></a>
       <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="verstuurd"><i class="fas fa-paper-plane w-5"></i><span>Verstuurd</span></a>
       <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="klanten"><i class="fas fa-users w-5"></i><span>Klanten</span></a>
+      <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="kutklusjes"><i class="fas fa-broom w-5"></i><span>Kutklusjes</span></a>
     </nav>
     <div class="p-4 border-t border-slate-800">
       <button id="logoutBtn" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-400 transition"><i class="fas fa-sign-out-alt w-5"></i><span>Uitloggen</span></button>
@@ -136,13 +138,14 @@
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <!-- DASHBOARD -->
       <div id="view-dashboard" class="view fade-in">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 mb-8">
           <div onclick="activateTab('klanten')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Klanten</p><p id="stat-klanten" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl"><i class="fas fa-users"></i></div></div></div>
           <div onclick="activateTab('openstaand')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Openstaand</p><p id="stat-openstaand" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-xl"><i class="fas fa-tasks"></i></div></div></div>
           <div onclick="activateTab('afgerond')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Afgerond</p><p id="stat-afgerond" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl"><i class="fas fa-check-circle"></i></div></div></div>
           <div onclick="activateTab('bestellingen')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Bestellingen</p><p id="stat-bestellingen" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-xl"><i class="fas fa-box"></i></div></div></div>
           <div onclick="activateTab('werkbonnen')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Werkbonnen</p><p id="stat-werkbonnen" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-xl"><i class="fas fa-file-invoice"></i></div></div></div>
           <div onclick="activateTab('verstuurd')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Verstuurd</p><p id="stat-verstuurd" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl"><i class="fas fa-paper-plane"></i></div></div></div>
+          <div onclick="activateTab('kutklusjes')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Kutklusjes</p><p id="stat-kutklusjes" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-xl"><i class="fas fa-broom"></i></div></div></div>
         </div>
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 text-center">
           <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 text-3xl"><i class="fas fa-clipboard-list"></i></div>
@@ -161,6 +164,10 @@
           <button type="button" onclick="importKlantenUitData()" class="text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center space-x-2 hover:bg-slate-50 transition flex-shrink-0"><i class="fas fa-magic"></i><span>Importeer klanten uit bestaande gegevens</span></button>
         </div>
         <div id="klanten-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <div id="view-kutklusjes" class="view hidden">
+        <div id="tbody-kutklusjes" class="space-y-3"></div>
       </div>
 
       <div id="view-klant-detail" class="view hidden">
@@ -292,6 +299,19 @@
   </div>
 </div>
 
+<div id="modal-kutklusje" class="modal-overlay fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+      <h3 id="modal-kutklusje-title" class="text-lg font-semibold text-slate-800">Kutklusje Toevoegen</h3>
+      <button onclick="closeModal('modal-kutklusje')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="form-kutklusje" class="p-6 space-y-4">
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Wat moet er gedaan worden</label><textarea name="omschrijving" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="bijv. stofzuigen, kantoor opruimen" required></textarea></div>
+      <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeModal('modal-kutklusje')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuleren</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">Opslaan</button></div>
+    </form>
+  </div>
+</div>
+
 <div id="modal-product" class="modal-overlay fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition">
   <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
@@ -372,12 +392,13 @@
     verstuurd: "werkbonnen_verstuurd", // In rules: /werkbonnen_verstuurd/{docId}
     klanten: "klanten",
     klantProducten: "klant_producten",
-    klantFotos: "klant_fotos"
+    klantFotos: "klant_fotos",
+    kutklusjes: "kutklusjes"
   };
 
   const STORAGE_BUCKET = "horecaconcurrent-200d5.firebasestorage.app";
 
-  let state = { openstaand: [], afgerond: [], bestellingen: [], werkbonnen: [], verstuurd: [], klanten: [], klantProducten: [], klantFotos: [] };
+  let state = { openstaand: [], afgerond: [], bestellingen: [], werkbonnen: [], verstuurd: [], klanten: [], klantProducten: [], klantFotos: [], kutklusjes: [] };
   let accessToken = localStorage.getItem("hc_access_token");
   let refreshToken = localStorage.getItem("hc_refresh_token");
   let currentView = "dashboard";
@@ -679,6 +700,11 @@
       document.getElementById("product-foto-huidige").textContent = item.fotoUrl ? "Er staat al een foto. Kies een nieuw bestand om die te vervangen." : "";
       document.getElementById("modal-product-title").textContent = "Product Bewerken";
       openModal("modal-product");
+    } else if (key === "kutklusjes") {
+      const f = document.getElementById("form-kutklusje");
+      f.omschrijving.value = item.omschrijving || "";
+      document.getElementById("modal-kutklusje-title").textContent = "Kutklusje Bewerken";
+      openModal("modal-kutklusje");
     }
   }
 
@@ -782,7 +808,7 @@
   // ==========================================
   function renderDetailFields(fields) {
     return fields
-      .filter(f => f.value !== undefined && f.value !== null && String(f.value).trim() !== '')
+      .filter(f => f && f.value !== undefined && f.value !== null && String(f.value).trim() !== '')
       .map(f => `
         <div>
           <p class="text-xs font-medium text-slate-400 uppercase tracking-wide">${f.label}</p>
@@ -837,7 +863,7 @@
         { label: 'Te bestellen materialen', value: item.teBestellenMaterialen },
         key === 'verstuurd'
           ? { label: 'Verstuurd op', value: stripJaar(item.verstuurdDate) }
-          : { label: 'Status', value: item.status }
+          : null
       ];
     }
 
@@ -961,6 +987,11 @@
       document.getElementById("form-klant").reset();
       document.getElementById("modal-klant-title").textContent = "Klant Toevoegen";
       openModal("modal-klant");
+    } else if(currentView === "kutklusjes") {
+      editing = { key: null, id: null };
+      document.getElementById("form-kutklusje").reset();
+      document.getElementById("modal-kutklusje-title").textContent = "Kutklusje Toevoegen";
+      openModal("modal-kutklusje");
     } else {
       const f = document.getElementById("form-werkbon");
       f.reset();
@@ -1114,6 +1145,28 @@
       if (currentKlantId) renderKlantDetail();
       e.target.reset();
       closeModal("modal-klant");
+    } catch(err) {
+      alert("Opslaan mislukt: " + err.message);
+    }
+  });
+
+  document.getElementById("form-kutklusje").addEventListener("submit", async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = { omschrijving: fd.get("omschrijving") };
+    try {
+      if (editing.key === "kutklusjes" && editing.id) {
+        await fsUpdate("kutklusjes", editing.id, data);
+        const idx = state.kutklusjes.findIndex(i => i.id === editing.id);
+        if (idx > -1) state.kutklusjes[idx] = { ...state.kutklusjes[idx], ...data };
+      } else {
+        data.volgorde = Date.now();
+        const saved = await fsCreate("kutklusjes", data);
+        state.kutklusjes.push(saved);
+      }
+      renderAll();
+      e.target.reset();
+      closeModal("modal-kutklusje");
     } catch(err) {
       alert("Opslaan mislukt: " + err.message);
     }
@@ -1359,6 +1412,7 @@
     document.getElementById('stat-bestellingen').innerText = state.bestellingen.length;
     document.getElementById('stat-werkbonnen').innerText = state.werkbonnen.length;
     document.getElementById('stat-verstuurd').innerText = state.verstuurd.length;
+    document.getElementById('stat-kutklusjes').innerText = state.kutklusjes.length;
 
     let openstaandWeergave = state.openstaand;
     if (openstaandDatumSort) {
@@ -1392,7 +1446,8 @@
                     </div>
                 </div>`).join('') : `<div class="bg-white rounded-xl border border-slate-100 shadow-sm text-center text-slate-400 py-16">Geen openstaande werkzaamheden 🎉</div>`;
 
-    renderTable('tbody-afgerond', state.afgerond, i => `
+    const afgerondGesorteerd = [...state.afgerond].sort((a, b) => (b.doneTs || b.volgorde || 0) - (a.doneTs || a.volgorde || 0));
+    renderTable('tbody-afgerond', afgerondGesorteerd, i => `
                 <tr class="cursor-pointer" onclick="openDetail('afgerond','${i.id}')">
                     <td class="px-6 py-4">${i.klant || '-'}</td>
                     <td class="px-6 py-4">${i.todo || '-'}</td>
@@ -1450,6 +1505,18 @@
                         <button onclick="deleteItem('verstuurd', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`, 5);
+
+    const kutklusjesSorted = [...state.kutklusjes].sort((a, b) => (a.volgorde || 0) - (b.volgorde || 0));
+    const kutklusjesBody = document.getElementById('tbody-kutklusjes');
+    kutklusjesBody.innerHTML = kutklusjesSorted.length ? kutklusjesSorted.map(i => `
+                <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4 flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center flex-shrink-0"><i class="fas fa-broom text-sm"></i></div>
+                    <p class="text-sm text-slate-700 leading-relaxed flex-1 min-w-0 pt-1.5">${i.omschrijving || '-'}</p>
+                    <div class="print-hide flex items-center gap-1 flex-shrink-0">
+                        <button onclick="deleteItem('kutklusjes', '${i.id}')" title="Klaar / verwijderen" class="action-btn text-emerald-600 hover:text-emerald-800"><i class="fas fa-check"></i></button>
+                        <button onclick="openEditModal('kutklusjes', '${i.id}')" title="Bewerken" class="action-btn text-blue-600 hover:text-blue-800"><i class="fas fa-pen"></i></button>
+                    </div>
+                </div>`).join('') : `<div class="bg-white rounded-xl border border-slate-100 shadow-sm text-center text-slate-400 py-16">Geen kutklusjes — lekker bezig 🎉</div>`;
 
     renderKlanten();
     if (currentKlantId) renderKlantDetail();
