@@ -138,6 +138,7 @@
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <!-- DASHBOARD -->
       <div id="view-dashboard" class="view fade-in">
+        <div id="dash-aandacht" class="print-hide mb-6"></div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 mb-8">
           <div onclick="activateTab('klanten')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Klanten</p><p id="stat-klanten" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl"><i class="fas fa-users"></i></div></div></div>
           <div onclick="activateTab('openstaand')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Openstaand</p><p id="stat-openstaand" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-xl"><i class="fas fa-tasks"></i></div></div></div>
@@ -1643,7 +1644,77 @@
       </div>`).join('');
   }
 
+  // Grenzen voor "Hier moet iemand naar kijken"
+  const AANDACHT_LANG_OPEN_DAGEN = 14;
+  const AANDACHT_TERUGKOMEN_DAGEN = 7;
+  const AANDACHT_WERKBON_DAGEN = 5;
+
+  function renderAandacht() {
+    const nu = new Date();
+    const alleWerkbonnen = [...state.werkbonnen, ...state.verstuurd];
+    const punten = [];
+
+    state.openstaand.forEach(i => {
+      if (i.vervolgStatus === 'Terugkomen') {
+        const laatsteBezoek = alleWerkbonnen
+          .filter(w => normNaam(w.klant) === normNaam(i.klant))
+          .map(w => parseIsoDatum(w.datum))
+          .filter(Boolean)
+          .sort((a, b) => b - a)[0];
+        const dagen = laatsteBezoek ? dagenTussen(laatsteBezoek, nu) : null;
+        if (dagen !== null) {
+          if (dagen >= AANDACHT_TERUGKOMEN_DAGEN) {
+            punten.push({ key: 'openstaand', id: i.id, titel: i.klant, dagen, icoon: 'fa-rotate-left', kleur: 'bg-amber-50 text-amber-600', tekst: `Moet terugkomen, laatste bezoek ${dagenTekst(dagen)} geleden` });
+          }
+          return;
+        }
+      }
+      const gemeld = parseIsoDatum(i.datum);
+      const dagen = gemeld ? dagenTussen(gemeld, nu) : 0;
+      if (dagen >= AANDACHT_LANG_OPEN_DAGEN) {
+        punten.push({ key: 'openstaand', id: i.id, titel: i.klant, dagen, icoon: 'fa-hourglass-half', kleur: 'bg-rose-50 text-rose-600', tekst: `Staat al ${dagenTekst(dagen)} open` });
+      }
+    });
+
+    state.werkbonnen.forEach(w => {
+      const datum = parseIsoDatum(w.datum);
+      const dagen = datum ? dagenTussen(datum, nu) : 0;
+      if (dagen >= AANDACHT_WERKBON_DAGEN) {
+        punten.push({ key: 'werkbonnen', id: w.id, titel: w.klant, dagen, icoon: 'fa-file-invoice', kleur: 'bg-purple-50 text-purple-600', tekst: `Werkbon van ${dagenTekst(dagen)} geleden, nog niet in Exact` });
+      }
+    });
+
+    const el = document.getElementById('dash-aandacht');
+    if (!punten.length) {
+      el.innerHTML = `<div class="bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl px-5 py-4 text-sm font-medium"><i class="fas fa-check-circle mr-2"></i>Niets dat blijft liggen. Lekker bezig!</div>`;
+      return;
+    }
+    punten.sort((a, b) => b.dagen - a.dagen);
+    const zichtbaar = punten.slice(0, 8);
+    el.innerHTML = `
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+          <h3 class="font-semibold text-slate-800"><i class="fas fa-bell text-amber-500 mr-2"></i>Hier moet iemand naar kijken</h3>
+          <span class="text-xs font-medium bg-amber-50 text-amber-700 rounded-full px-2.5 py-1 flex-shrink-0">${punten.length}</span>
+        </div>
+        <div class="divide-y divide-slate-100">
+          ${zichtbaar.map(p => `
+            <div class="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 cursor-pointer" onclick="openDetail('${p.key}','${p.id}')">
+              <div class="w-9 h-9 rounded-full ${p.kleur} flex items-center justify-center flex-shrink-0"><i class="fas ${p.icoon} text-sm"></i></div>
+              <div class="min-w-0 flex-1">
+                <p class="font-medium text-slate-800 truncate">${esc(p.titel || '-')}</p>
+                <p class="text-sm text-slate-500">${p.tekst}</p>
+              </div>
+              <i class="fas fa-chevron-right text-slate-300 text-xs flex-shrink-0"></i>
+            </div>`).join('')}
+        </div>
+        ${punten.length > zichtbaar.length ? `<p class="px-5 py-3 text-xs text-slate-400 border-t border-slate-100">En nog ${punten.length - zichtbaar.length} andere</p>` : ''}
+      </div>`;
+  }
+
   function renderDashboard() {
+    renderAandacht();
+
     document.querySelectorAll('.dash-periode').forEach(b => {
       const actief = b.dataset.periode === dashPeriode;
       b.classList.toggle('bg-blue-600', actief);
