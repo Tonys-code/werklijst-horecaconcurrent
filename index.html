@@ -138,6 +138,7 @@
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <!-- DASHBOARD -->
       <div id="view-dashboard" class="view fade-in">
+        <div id="dash-aandacht" class="print-hide mb-6"></div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 mb-8">
           <div onclick="activateTab('klanten')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Klanten</p><p id="stat-klanten" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl"><i class="fas fa-users"></i></div></div></div>
           <div onclick="activateTab('openstaand')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Openstaand</p><p id="stat-openstaand" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-xl"><i class="fas fa-tasks"></i></div></div></div>
@@ -147,10 +148,54 @@
           <div onclick="activateTab('verstuurd')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Verstuurd</p><p id="stat-verstuurd" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center text-xl"><i class="fas fa-paper-plane"></i></div></div></div>
           <div onclick="activateTab('kutklusjes')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Kutklusjes</p><p id="stat-kutklusjes" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-xl"><i class="fas fa-broom"></i></div></div></div>
         </div>
-        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 text-center">
-          <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 text-3xl"><i class="fas fa-clipboard-list"></i></div>
-          <h3 class="text-lg font-semibold text-slate-800 mb-2">Welkom bij Horeca Concurrent</h3>
-          <p class="text-slate-500 max-w-md mx-auto">Selecteer een categorie in het menu of klik op 'Toevoegen'.</p>
+        <div id="dash-cijfers" class="print-hide">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <h3 class="text-lg font-semibold text-slate-800">Cijfers</h3>
+            <div class="grid grid-cols-4 bg-white border border-slate-200 rounded-lg p-1 text-sm font-medium w-full sm:w-auto">
+              <button type="button" class="dash-periode px-1 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm whitespace-nowrap" data-periode="maand" onclick="setDashPeriode('maand')">Deze maand</button>
+              <button type="button" class="dash-periode px-1 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm whitespace-nowrap" data-periode="kwartaal" onclick="setDashPeriode('kwartaal')">3 maanden</button>
+              <button type="button" class="dash-periode px-1 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm whitespace-nowrap" data-periode="jaar" onclick="setDashPeriode('jaar')">Dit jaar</button>
+              <button type="button" class="dash-periode px-1 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm whitespace-nowrap" data-periode="alles" onclick="setDashPeriode('alles')">Alles</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100"><p class="text-sm text-slate-500 font-medium">Storingen gemeld</p><p id="dash-gemeld" class="text-2xl sm:text-3xl font-bold text-slate-800 mt-1">0</p></div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100"><p class="text-sm text-slate-500 font-medium">Storingen afgerond</p><p id="dash-afgerond" class="text-2xl sm:text-3xl font-bold text-slate-800 mt-1">0</p></div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100"><p class="text-sm text-slate-500 font-medium">Werkbonnen</p><p id="dash-werkbonnen" class="text-2xl sm:text-3xl font-bold text-slate-800 mt-1">0</p><p id="dash-uren" class="text-xs text-slate-400 mt-1"></p></div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100"><p class="text-sm text-slate-500 font-medium">Gem. tijd tot afgerond</p><p id="dash-doorlooptijd" class="text-2xl sm:text-3xl font-bold text-slate-800 mt-1">–</p><p id="dash-langst-open" class="text-xs text-slate-400 mt-1"></p></div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+              <h4 class="font-semibold text-slate-800">Werkbonnen per monteur</h4>
+              <p class="text-xs text-slate-400 mb-4">Wie de meeste klussen heeft gedaan</p>
+              <div id="dash-monteurs" class="space-y-3"></div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+              <h4 class="font-semibold text-slate-800">Hoe snel is een storing afgerond?</h4>
+              <p class="text-xs text-slate-400 mb-4">Van melding tot afgerond</p>
+              <div id="dash-doorloop" class="space-y-3"></div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+              <h4 class="font-semibold text-slate-800">Klanten met de meeste storingen</h4>
+              <p class="text-xs text-slate-400 mb-4">Top 5</p>
+              <div id="dash-klanten" class="space-y-3"></div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+              <div class="flex items-start justify-between gap-3 mb-4">
+                <div>
+                  <h4 class="font-semibold text-slate-800">Storingen per maand</h4>
+                  <p class="text-xs text-slate-400">Laatste 6 maanden</p>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-600 flex-shrink-0">
+                  <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm" style="background:#3a5798"></span>Gemeld</span>
+                  <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm" style="background:#7fb73f"></span>Afgerond</span>
+                </div>
+              </div>
+              <div id="dash-maanden" class="flex items-end gap-2 h-48"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -407,6 +452,7 @@
   let currentKlantId = null;
   let detailTab = "producten";
   let openstaandDatumSort = null; // null | 'asc' | 'desc'
+  let dashPeriode = 'jaar'; // 'maand' | 'kwartaal' | 'jaar' | 'alles'
 
   const loginScreen = document.getElementById("loginScreen");
   const appContainer = document.getElementById("appContainer");
@@ -1520,7 +1566,280 @@
 
     renderKlanten();
     if (currentKlantId) renderKlantDetail();
+    renderDashboard();
     initSortable();
+  }
+
+  // ==========================================
+  // DASHBOARD CIJFERS
+  // ==========================================
+  const KLEUR_GEMELD = '#3a5798';
+  const KLEUR_AFGEROND = '#7fb73f';
+  const MAANDEN_KORT = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // "2026-10-19" (datumveld) -> Date
+  function parseIsoDatum(s) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+    return m ? new Date(+m[1], m[2] - 1, +m[3]) : null;
+  }
+
+  // Afgerond: doneTs, of anders doneDate "19-10-2026"
+  function afgerondDatum(i) {
+    if (i.doneTs) return new Date(i.doneTs);
+    const m = /^(\d{1,2})-(\d{1,2})-(\d{4})$/.exec(i.doneDate || '');
+    return m ? new Date(+m[3], m[2] - 1, +m[1]) : null;
+  }
+
+  function dagenTussen(van, tot) {
+    const a = new Date(van.getFullYear(), van.getMonth(), van.getDate());
+    const b = new Date(tot.getFullYear(), tot.getMonth(), tot.getDate());
+    return Math.max(0, Math.round((b - a) / 86400000));
+  }
+
+  // "09:00 - 11:30", "9.00 tot 11.30" of "2,5 uur" -> aantal uren
+  function werktijdUren(s) {
+    const t = /(\d{1,2})[:.](\d{2})\s*(?:-|–|tot)\s*(\d{1,2})[:.](\d{2})/.exec(s || '');
+    if (t) {
+      let min = (+t[3] * 60 + +t[4]) - (+t[1] * 60 + +t[2]);
+      if (min < 0) min += 24 * 60;
+      return min / 60;
+    }
+    const u = /(\d+(?:[.,]\d+)?)\s*u/i.exec(s || '');
+    return u ? parseFloat(u[1].replace(',', '.')) : 0;
+  }
+
+  function dashPeriodeStart() {
+    const nu = new Date();
+    if (dashPeriode === 'maand') return new Date(nu.getFullYear(), nu.getMonth(), 1);
+    if (dashPeriode === 'kwartaal') return new Date(nu.getFullYear(), nu.getMonth() - 2, 1);
+    if (dashPeriode === 'jaar') return new Date(nu.getFullYear(), 0, 1);
+    return null;
+  }
+
+  function setDashPeriode(p) {
+    dashPeriode = p;
+    renderDashboard();
+  }
+
+  function dagenTekst(n) {
+    return n === 1 ? '1 dag' : `${n} dagen`;
+  }
+
+  function balkRijen(rijen, kleur, leegTekst) {
+    const max = Math.max(...rijen.map(r => r.waarde), 0);
+    if (!max) return `<p class="text-sm text-slate-400 py-6 text-center">${leegTekst}</p>`;
+    return rijen.map(r => `
+      <div title="${esc(r.label)}: ${esc(r.tekst)}">
+        <div class="flex items-baseline justify-between gap-3 text-sm">
+          <span class="text-slate-700 truncate min-w-0">${esc(r.label)}</span>
+          <span class="text-slate-500 flex-shrink-0 whitespace-nowrap">${esc(r.tekst)}</span>
+        </div>
+        <div class="h-2.5 bg-slate-100 rounded mt-1">
+          <div class="h-2.5 rounded" style="width:${r.waarde ? Math.max(2, r.waarde / max * 100) : 0}%;background:${kleur}"></div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Grenzen voor "Hier moet iemand naar kijken"
+  const AANDACHT_LANG_OPEN_DAGEN = 14;
+  const AANDACHT_TERUGKOMEN_DAGEN = 7;
+  const AANDACHT_WERKBON_DAGEN = 5;
+
+  function renderAandacht() {
+    const nu = new Date();
+    const alleWerkbonnen = [...state.werkbonnen, ...state.verstuurd];
+    const punten = [];
+
+    state.openstaand.forEach(i => {
+      if (i.vervolgStatus === 'Terugkomen') {
+        const laatsteBezoek = alleWerkbonnen
+          .filter(w => normNaam(w.klant) === normNaam(i.klant))
+          .map(w => parseIsoDatum(w.datum))
+          .filter(Boolean)
+          .sort((a, b) => b - a)[0];
+        const dagen = laatsteBezoek ? dagenTussen(laatsteBezoek, nu) : null;
+        if (dagen !== null) {
+          if (dagen >= AANDACHT_TERUGKOMEN_DAGEN) {
+            punten.push({ key: 'openstaand', id: i.id, titel: i.klant, dagen, icoon: 'fa-rotate-left', kleur: 'bg-amber-50 text-amber-600', tekst: `Moet terugkomen, laatste bezoek ${dagenTekst(dagen)} geleden` });
+          }
+          return;
+        }
+      }
+      const gemeld = parseIsoDatum(i.datum);
+      const dagen = gemeld ? dagenTussen(gemeld, nu) : 0;
+      if (dagen >= AANDACHT_LANG_OPEN_DAGEN) {
+        punten.push({ key: 'openstaand', id: i.id, titel: i.klant, dagen, icoon: 'fa-hourglass-half', kleur: 'bg-rose-50 text-rose-600', tekst: `Staat al ${dagenTekst(dagen)} open` });
+      }
+    });
+
+    state.werkbonnen.forEach(w => {
+      const datum = parseIsoDatum(w.datum);
+      const dagen = datum ? dagenTussen(datum, nu) : 0;
+      if (dagen >= AANDACHT_WERKBON_DAGEN) {
+        punten.push({ key: 'werkbonnen', id: w.id, titel: w.klant, dagen, icoon: 'fa-file-invoice', kleur: 'bg-purple-50 text-purple-600', tekst: `Werkbon van ${dagenTekst(dagen)} geleden, nog niet in Exact` });
+      }
+    });
+
+    const el = document.getElementById('dash-aandacht');
+    if (!punten.length) {
+      el.innerHTML = `<div class="bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl px-5 py-4 text-sm font-medium"><i class="fas fa-check-circle mr-2"></i>Niets dat blijft liggen. Lekker bezig!</div>`;
+      return;
+    }
+    punten.sort((a, b) => b.dagen - a.dagen);
+    const zichtbaar = punten.slice(0, 8);
+    el.innerHTML = `
+      <div class="bg-white rounded-xl shadow-sm border border-slate-100">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+          <h3 class="font-semibold text-slate-800"><i class="fas fa-bell text-amber-500 mr-2"></i>Hier moet iemand naar kijken</h3>
+          <span class="text-xs font-medium bg-amber-50 text-amber-700 rounded-full px-2.5 py-1 flex-shrink-0">${punten.length}</span>
+        </div>
+        <div class="divide-y divide-slate-100">
+          ${zichtbaar.map(p => `
+            <div class="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 cursor-pointer" onclick="openDetail('${p.key}','${p.id}')">
+              <div class="w-9 h-9 rounded-full ${p.kleur} flex items-center justify-center flex-shrink-0"><i class="fas ${p.icoon} text-sm"></i></div>
+              <div class="min-w-0 flex-1">
+                <p class="font-medium text-slate-800 truncate">${esc(p.titel || '-')}</p>
+                <p class="text-sm text-slate-500">${p.tekst}</p>
+              </div>
+              <i class="fas fa-chevron-right text-slate-300 text-xs flex-shrink-0"></i>
+            </div>`).join('')}
+        </div>
+        ${punten.length > zichtbaar.length ? `<p class="px-5 py-3 text-xs text-slate-400 border-t border-slate-100">En nog ${punten.length - zichtbaar.length} andere</p>` : ''}
+      </div>`;
+  }
+
+  function renderDashboard() {
+    renderAandacht();
+
+    document.querySelectorAll('.dash-periode').forEach(b => {
+      const actief = b.dataset.periode === dashPeriode;
+      b.classList.toggle('bg-blue-600', actief);
+      b.classList.toggle('text-white', actief);
+      b.classList.toggle('text-slate-600', !actief);
+    });
+
+    const start = dashPeriodeStart();
+    const inPeriode = d => d && (!start || d >= start);
+    const nu = new Date();
+
+    const storingen = [...state.openstaand, ...state.afgerond];
+    const gemeld = storingen.filter(i => inPeriode(parseIsoDatum(i.datum)));
+    const afgerond = state.afgerond.filter(i => inPeriode(afgerondDatum(i)));
+    const werkbonnen = [...state.werkbonnen, ...state.verstuurd].filter(i => inPeriode(parseIsoDatum(i.datum)));
+
+    // Doorlooptijd: van datum melding tot afgerond
+    const doorlooptijden = afgerond
+      .map(i => {
+        const van = parseIsoDatum(i.datum);
+        const tot = afgerondDatum(i);
+        return van && tot ? dagenTussen(van, tot) : null;
+      })
+      .filter(d => d !== null);
+    const gemiddeld = doorlooptijden.length ? doorlooptijden.reduce((a, b) => a + b, 0) / doorlooptijden.length : null;
+
+    const langstOpen = state.openstaand
+      .map(i => ({ i, d: parseIsoDatum(i.datum) }))
+      .filter(x => x.d)
+      .sort((a, b) => a.d - b.d)[0];
+
+    // Per monteur: aantal werkbonnen en uren
+    const monteurNamen = [...document.querySelectorAll('input[name="monteurs"]')].map(cb => cb.value);
+    const perMonteur = {};
+    monteurNamen.forEach(n => { perMonteur[n] = { aantal: 0, uren: 0 }; });
+    let totaalUren = 0;
+    werkbonnen.forEach(w => {
+      const uren = werktijdUren(w.werktijd);
+      totaalUren += uren;
+      (w.monteurs || '').split(',').map(m => m.trim()).filter(Boolean).forEach(m => {
+        if (!perMonteur[m]) perMonteur[m] = { aantal: 0, uren: 0 };
+        perMonteur[m].aantal++;
+        perMonteur[m].uren += uren;
+      });
+    });
+
+    document.getElementById('dash-gemeld').innerText = gemeld.length;
+    document.getElementById('dash-afgerond').innerText = afgerond.length;
+    document.getElementById('dash-werkbonnen').innerText = werkbonnen.length;
+    document.getElementById('dash-uren').innerText = totaalUren ? `± ${Math.round(totaalUren)} uur gewerkt` : '';
+    document.getElementById('dash-doorlooptijd').innerText = gemiddeld === null ? '–' : dagenTekst(Math.round(gemiddeld * 10) / 10).replace('.', ',');
+    document.getElementById('dash-langst-open').innerText = langstOpen
+      ? `Langst open nu: ${dagenTekst(dagenTussen(langstOpen.d, nu))} (${langstOpen.i.klant || '-'})`
+      : '';
+
+    document.getElementById('dash-monteurs').innerHTML = balkRijen(
+      Object.entries(perMonteur)
+        .map(([naam, v]) => ({
+          label: naam,
+          waarde: v.aantal,
+          tekst: `${v.aantal} werkbon${v.aantal === 1 ? '' : 'nen'}${v.uren ? ` · ${Math.round(v.uren)} uur` : ''}`
+        }))
+        .sort((a, b) => b.waarde - a.waarde),
+      KLEUR_GEMELD,
+      'Geen werkbonnen in deze periode.'
+    );
+
+    const groepen = [
+      { label: 'Zelfde dag', tot: 0 },
+      { label: '1 – 2 dagen', tot: 2 },
+      { label: '3 – 7 dagen', tot: 7 },
+      { label: '1 – 4 weken', tot: 28 },
+      { label: 'Langer dan 4 weken', tot: Infinity }
+    ].map(g => ({ ...g, aantal: 0 }));
+    doorlooptijden.forEach(d => { groepen.find(g => d <= g.tot).aantal++; });
+    document.getElementById('dash-doorloop').innerHTML = balkRijen(
+      groepen.map(g => ({
+        label: g.label,
+        waarde: g.aantal,
+        tekst: `${g.aantal} (${doorlooptijden.length ? Math.round(g.aantal / doorlooptijden.length * 100) : 0}%)`
+      })),
+      KLEUR_AFGEROND,
+      'Nog geen afgeronde storingen in deze periode.'
+    );
+
+    const perKlant = {};
+    gemeld.forEach(i => {
+      const naam = (i.klant || '').trim();
+      if (!naam) return;
+      const k = normNaam(naam);
+      if (!perKlant[k]) perKlant[k] = { naam, aantal: 0 };
+      perKlant[k].aantal++;
+    });
+    document.getElementById('dash-klanten').innerHTML = balkRijen(
+      Object.values(perKlant)
+        .sort((a, b) => b.aantal - a.aantal)
+        .slice(0, 5)
+        .map(k => ({ label: k.naam, waarde: k.aantal, tekst: `${k.aantal} storing${k.aantal === 1 ? '' : 'en'}` })),
+      KLEUR_GEMELD,
+      'Geen storingen in deze periode.'
+    );
+
+    // Laatste 6 maanden (los van de periodekeuze)
+    const maanden = [];
+    for (let k = 5; k >= 0; k--) {
+      const d = new Date(nu.getFullYear(), nu.getMonth() - k, 1);
+      maanden.push({ jaar: d.getFullYear(), maand: d.getMonth(), gemeld: 0, afgerond: 0 });
+    }
+    const zoekMaand = d => d && maanden.find(m => m.jaar === d.getFullYear() && m.maand === d.getMonth());
+    storingen.forEach(i => { const m = zoekMaand(parseIsoDatum(i.datum)); if (m) m.gemeld++; });
+    state.afgerond.forEach(i => { const m = zoekMaand(afgerondDatum(i)); if (m) m.afgerond++; });
+    const maxMaand = Math.max(1, ...maanden.map(m => Math.max(m.gemeld, m.afgerond)));
+    const staaf = (n, kleur) => `
+      <div class="flex-1 flex flex-col items-center justify-end h-full min-w-0">
+        <span class="text-[11px] text-slate-500 leading-none mb-1">${n || ''}</span>
+        <div class="w-full rounded-t" style="height:${n / maxMaand * 85}%;background:${kleur}"></div>
+      </div>`;
+    document.getElementById('dash-maanden').innerHTML = maanden.map(m => `
+      <div class="flex-1 flex flex-col h-full min-w-0" title="${MAANDEN_KORT[m.maand]} ${m.jaar}: ${m.gemeld} gemeld, ${m.afgerond} afgerond">
+        <div class="flex-1 flex items-end gap-0.5 border-b border-slate-200 pb-px">
+          ${staaf(m.gemeld, KLEUR_GEMELD)}
+          ${staaf(m.afgerond, KLEUR_AFGEROND)}
+        </div>
+        <span class="text-xs text-slate-500 text-center mt-1.5">${MAANDEN_KORT[m.maand]}</span>
+      </div>`).join('');
   }
 
   function renderKlantenSuggesties() {
