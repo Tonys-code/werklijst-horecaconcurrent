@@ -303,6 +303,7 @@
     </div>
     <form id="form-bestelling" class="p-6 space-y-4">
       <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Leverancier</label><input type="text" name="leverancier" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Voor klant</label><input type="text" name="klant" list="klanten-suggesties" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Hoort bij werkzaamheid</label><select name="werkzaamheidId" id="bestelling-werkzaamheid" onchange="werkzaamheidGekozen('form-bestelling')" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"></select><p class="text-xs text-slate-400 mt-1">Zo zie je bij de storing of het onderdeel al binnen is.</p></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Onderdeel</label><input type="text" name="onderdeel" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Status</label><select name="status" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"><option>Nog bestellen</option><option>Onderdeel opgevraagd</option><option>Besteld – wachten</option><option>Ontvangen</option></select></div>
       <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100"><button type="button" onclick="closeModal('modal-bestelling')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition">Annuleren</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm">Opslaan</button></div>
@@ -318,7 +319,7 @@
     </div>
     <form id="form-werkbon" class="p-6 space-y-4">
       <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-slate-700 mb-1">Klant</label><input type="text" name="klant" list="klanten-suggesties" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div><div><label class="block text-sm font-medium text-slate-700 mb-1">Datum</label><input type="date" name="datum" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required></div></div>
-      <div><label class="block text-sm font-medium text-slate-700 mb-1">Hoort bij werkzaamheid</label><select name="werkzaamheidId" id="werkbon-werkzaamheid" onchange="werkzaamheidGekozen()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"></select><p class="text-xs text-slate-400 mt-1">Werkbonnen van dezelfde werkzaamheid worden samengevoegd.</p></div>
+      <div><label class="block text-sm font-medium text-slate-700 mb-1">Hoort bij werkzaamheid</label><select name="werkzaamheidId" id="werkbon-werkzaamheid" onchange="werkzaamheidGekozen('form-werkbon')" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"></select><p class="text-xs text-slate-400 mt-1">Werkbonnen van dezelfde werkzaamheid worden samengevoegd.</p></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-2">Monteur(s)</label><div class="grid grid-cols-3 gap-2"><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Tony" class="rounded text-blue-600"> <span>Tony</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Davy" class="rounded text-blue-600"> <span>Davy</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Guus" class="rounded text-blue-600"> <span>Guus</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Suad" class="rounded text-blue-600"> <span>Suad</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Elbekri" class="rounded text-blue-600"> <span>Elbekri</span></label><label class="flex items-center space-x-2 p-2 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" name="monteurs" value="Michel" class="rounded text-blue-600"> <span>Michel</span></label></div></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Werktijd</label><input type="text" name="werktijd" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="bijv. 09:00 - 11:30"></div>
       <div><label class="block text-sm font-medium text-slate-700 mb-1">Omschrijving</label><textarea name="omschrijving" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea></div>
@@ -726,6 +727,7 @@
       f.klant.value = item.klant || "";
       f.onderdeel.value = item.onderdeel || "";
       f.status.value = item.status || "Nog bestellen";
+      vulWerkzaamheidKeuzes("bestelling-werkzaamheid", item.werkzaamheidId);
       document.getElementById("modal-bestelling-title").textContent = "Bestelling Bewerken";
       openModal("modal-bestelling");
     } else if (key === "werkbonnen") {
@@ -737,7 +739,7 @@
       f.materialen.value = item.materialen || "";
       f.vervolgactie.value = item.vervolgactie || "Terugkomen";
       f.teBestellenMaterialen.value = item.teBestellenMaterialen || "";
-      vulWerkzaamheidKeuzes(item.werkzaamheidId);
+      vulWerkzaamheidKeuzes("werkbon-werkzaamheid", item.werkzaamheidId);
       const monteurs = (item.monteurs || "").split(",").map(m => m.trim());
       document.querySelectorAll('input[name="monteurs"]').forEach(cb => { cb.checked = monteurs.includes(cb.value); });
       toggleTeBestellenField();
@@ -891,7 +893,8 @@
         { label: 'Datum melding', value: formatDatumKort(item.datum) },
         { label: 'Wat moet er gebeuren', value: item.todo },
         { label: 'Aandachtspunt', value: item.note },
-        { label: 'Werkbon-status', value: item.vervolgStatus ? vervolgStatusLabel(item.vervolgStatus) : '' }
+        { label: 'Werkbon-status', value: item.vervolgStatus ? vervolgStatusLabel(item.vervolgStatus) : '' },
+        { label: 'Bestellingen', value: bestellingenVan(item.id).map(b => `${b.onderdeel || '-'} (${b.status || '-'})`).join('\n') }
       ];
     } else if (key === 'afgerond') {
       title = item.klant || 'Werkzaamheid';
@@ -909,6 +912,7 @@
         { label: 'Leverancier', value: item.leverancier },
         { label: 'Onderdeel / omschrijving', value: item.onderdeel },
         { label: 'Voor klant', value: item.klant },
+        { label: 'Hoort bij werkzaamheid', value: werkzaamheidById(item.werkzaamheidId) ? werkzaamheidLabel(werkzaamheidById(item.werkzaamheidId)) : '' },
         { label: 'Status', value: item.status }
       ];
     } else if (key === 'werkbonnen' || key === 'verstuurd') {
@@ -940,6 +944,18 @@
       editBtn.classList.add('hidden');
     }
     openModal('modal-detail');
+  }
+
+  function bestellingenVan(werkzaamheidId) {
+    return state.bestellingen.filter(b => b.werkzaamheidId === werkzaamheidId);
+  }
+
+  function bestelStatusKort(v) {
+    if (v === 'Nog bestellen') return 'Onderdeel nog bestellen';
+    if (v === 'Onderdeel opgevraagd') return 'Onderdeel opgevraagd';
+    if (v === 'Besteld – wachten') return 'Onderdeel besteld';
+    if (v === 'Ontvangen') return 'Onderdeel binnen';
+    return 'Onderdeel';
   }
 
   function bestelStatusBadge(v) {
@@ -981,8 +997,8 @@
     return `${i.klant || '-'} – ${todo.length > 50 ? todo.slice(0, 50) + '…' : todo}`;
   }
 
-  function vulWerkzaamheidKeuzes(huidigeId) {
-    const select = document.getElementById("werkbon-werkzaamheid");
+  function vulWerkzaamheidKeuzes(selectId, huidigeId) {
+    const select = document.getElementById(selectId);
     const opties = [...state.openstaand]
       .sort((a, b) => (a.klant || '').localeCompare(b.klant || ''))
       .map(i => `<option value="${i.id}">${esc(werkzaamheidLabel(i))}</option>`);
@@ -990,12 +1006,12 @@
       const huidige = state.afgerond.find(i => i.id === huidigeId);
       opties.unshift(`<option value="${huidigeId}">${huidige ? esc(werkzaamheidLabel(huidige)) + ' (afgerond)' : '(verwijderde werkzaamheid)'}</option>`);
     }
-    select.innerHTML = `<option value="">Geen / losse werkbon</option>` + opties.join('');
+    select.innerHTML = `<option value="">Geen / hoort nergens bij</option>` + opties.join('');
     select.value = huidigeId || "";
   }
 
-  function werkzaamheidGekozen() {
-    const f = document.getElementById("form-werkbon");
+  function werkzaamheidGekozen(formId) {
+    const f = document.getElementById(formId);
     const item = werkzaamheidById(f.werkzaamheidId.value);
     if (item && !f.klant.value) f.klant.value = item.klant || "";
   }
@@ -1006,7 +1022,7 @@
     editing = { key: null, id: null };
     const f = document.getElementById("form-werkbon");
     f.reset();
-    vulWerkzaamheidKeuzes(id);
+    vulWerkzaamheidKeuzes("werkbon-werkzaamheid", id);
     f.klant.value = item.klant || "";
     f.omschrijving.value = item.todo || "";
     f.datum.value = new Date().toISOString().slice(0, 10);
@@ -1072,6 +1088,7 @@
       openModal("modal-werkzaamheid");
     } else if(currentView === "bestellingen") {
       document.getElementById("form-bestelling").reset();
+      vulWerkzaamheidKeuzes("bestelling-werkzaamheid", null);
       document.getElementById("modal-bestelling-title").textContent = "Bestelling Toevoegen";
       openModal("modal-bestelling");
     } else if(currentView === "klanten") {
@@ -1086,7 +1103,7 @@
     } else {
       const f = document.getElementById("form-werkbon");
       f.reset();
-      vulWerkzaamheidKeuzes(null);
+      vulWerkzaamheidKeuzes("werkbon-werkzaamheid", null);
       f.datum.value = new Date().toISOString().slice(0, 10);
       toggleTeBestellenField();
       document.getElementById("modal-werkbon-title").textContent = "Werkbon Toevoegen";
@@ -1135,7 +1152,8 @@
       leverancier: fd.get("leverancier"),
       onderdeel: fd.get("onderdeel"),
       klant: fd.get("klant"),
-      status: fd.get("status")
+      status: fd.get("status"),
+      werkzaamheidId: fd.get("werkzaamheidId") || ""
     };
     try {
       if (editing.key === "bestellingen" && editing.id) {
@@ -1194,6 +1212,7 @@
             onderdeel: teBestellenMaterialen,
             klant: data.klant,
             status: "Onderdeel opgevraagd",
+            werkzaamheidId: data.werkzaamheidId,
             volgorde: Date.now()
           });
           state.bestellingen.push(besteld);
@@ -1530,6 +1549,7 @@
                         <p class="text-sm text-slate-600 mt-2 leading-relaxed">${i.todo || '-'}</p>
                         ${i.note ? `<p class="text-xs text-amber-600 mt-2"><i class="fas fa-exclamation-triangle mr-1"></i>${i.note}</p>` : ''}
                         ${i.vervolgStatus ? `<span class="inline-block text-xs font-medium rounded-full px-2.5 py-1 mt-2 ${vervolgactieBadge(i.vervolgStatus)}"><i class="fas fa-file-invoice mr-1"></i>Werkbon: ${vervolgStatusLabel(i.vervolgStatus)}</span>` : ''}
+                        ${bestellingenVan(i.id).map(b => `<span class="print-hide inline-block max-w-full truncate align-top text-xs font-medium rounded-full px-2.5 py-1 mt-2 ${bestelStatusBadge(b.status)}"><i class="fas fa-box mr-1"></i>${bestelStatusKort(b.status)}${b.onderdeel ? ` · ${b.onderdeel}` : ''}</span>`).join(' ')}
                         <div class="print-hide flex flex-wrap items-center gap-1 mt-3 pt-3 border-t border-slate-100" onclick="event.stopPropagation()">
                             <button onclick="createWerkbonFromOpen('${i.id}')" title="Werkbon maken" class="action-btn text-purple-600 hover:text-purple-800"><i class="fas fa-file-invoice"></i></button>
                             <button onclick="moveToAfgerond('${i.id}')" title="Afgerond" class="action-btn text-emerald-600 hover:text-emerald-800"><i class="fas fa-check"></i></button>
@@ -1562,6 +1582,7 @@
                         <span class="text-xs font-medium rounded-full px-2.5 py-1 flex-shrink-0 whitespace-nowrap ${bestelStatusBadge(i.status)}">${i.status || '-'}</span>
                     </div>
                     <p class="text-sm text-slate-600 mt-2 leading-relaxed">${i.onderdeel || '-'}</p>
+                    ${werkzaamheidById(i.werkzaamheidId) ? `<p class="text-xs text-slate-400 mt-2 truncate"><i class="fas fa-link mr-1"></i>${esc(werkzaamheidLabel(werkzaamheidById(i.werkzaamheidId)))}</p>` : ''}
                     <div class="print-hide flex flex-wrap items-center gap-1 mt-3 pt-3 border-t border-slate-100" onclick="event.stopPropagation()">
                         <button onclick="openEditModal('bestellingen', '${i.id}')" title="Bewerken" class="action-btn text-blue-600 hover:text-blue-800"><i class="fas fa-pen"></i></button>
                         <button onclick="deleteItem('bestellingen', '${i.id}')" title="Verwijderen" class="action-btn text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
@@ -1744,6 +1765,12 @@
     const punten = [];
 
     state.openstaand.forEach(i => {
+      const binnen = bestellingenVan(i.id).filter(b => b.status === 'Ontvangen');
+      if (binnen.length) {
+        const onderdelen = binnen.map(b => b.onderdeel).filter(Boolean).join(', ');
+        punten.push({ key: 'openstaand', id: i.id, titel: i.klant, dagen: Infinity, icoon: 'fa-box', kleur: 'bg-emerald-50 text-emerald-600', tekst: `Onderdeel is binnen${onderdelen ? ` (${esc(onderdelen)})` : ''}, klus kan verder` });
+        return;
+      }
       if (i.vervolgStatus === 'Terugkomen') {
         const gekoppeld = alleWerkbonnen.filter(w => w.werkzaamheidId === i.id);
         const laatsteBezoek = (gekoppeld.length ? gekoppeld : alleWerkbonnen.filter(w => normNaam(w.klant) === normNaam(i.klant)))
@@ -1778,7 +1805,7 @@
       el.innerHTML = `<div class="bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl px-5 py-4 text-sm font-medium"><i class="fas fa-check-circle mr-2"></i>Niets dat blijft liggen. Lekker bezig!</div>`;
       return;
     }
-    punten.sort((a, b) => b.dagen - a.dagen);
+    punten.sort((a, b) => (b.dagen > a.dagen) - (b.dagen < a.dagen));
     const zichtbaar = punten.slice(0, 8);
     el.innerHTML = `
       <div class="bg-white rounded-xl shadow-sm border border-slate-100">
@@ -1943,7 +1970,8 @@
         { icoon: 'fa-bell', titel: 'Hier moet iemand naar kijken', tekst: 'Bovenaan het dashboard staan storingen die al lang openstaan, storingen waar nog teruggekomen moet worden en werkbonnen die al een paar dagen niet verstuurd zijn. Klik erop om ze te openen.' },
         { icoon: 'fa-chart-column', titel: 'Cijfers en grafieken', tekst: 'Op het dashboard zie je hoeveel storingen en werkbonnen er waren, wie de meeste werkbonnen heeft gedaan, hoe snel storingen zijn afgerond en welke klanten de meeste storingen hebben. Kies bovenaan de periode.' },
         { icoon: 'fa-layer-group', titel: 'Werkbonnen samengevoegd', tekst: 'Zijn er meerdere werkbonnen voor dezelfde klus, dan staan ze bij Werkbonnen in één kaart. Klik op een regel om die ene werkbon te bekijken.' },
-        { icoon: 'fa-link', titel: 'Werkbon hoort bij een werkzaamheid', tekst: 'In het werkbonformulier staat het veld "Hoort bij werkzaamheid". Via "Werkbon maken" wordt het vanzelf ingevuld. Oudere werkbonnen kun je via Bewerken alsnog koppelen.' }
+        { icoon: 'fa-link', titel: 'Werkbon hoort bij een werkzaamheid', tekst: 'In het werkbonformulier staat het veld "Hoort bij werkzaamheid". Via "Werkbon maken" wordt het vanzelf ingevuld. Oudere werkbonnen kun je via Bewerken alsnog koppelen.' },
+        { icoon: 'fa-box', titel: 'Bestellingen bij een werkzaamheid', tekst: 'Ook een bestelling kun je aan een werkzaamheid koppelen. Bij de storing zie je dan of het onderdeel besteld of al binnen is. Is het binnen, dan staat dat bij "Hier moet iemand naar kijken". Kies je op de werkbon "Materialen bestellen", dan wordt de bestelling vanzelf gekoppeld.' }
       ]
     }
   ];
