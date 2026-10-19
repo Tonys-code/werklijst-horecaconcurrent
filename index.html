@@ -1680,7 +1680,7 @@
       const datum = parseIsoDatum(w.datum);
       const dagen = datum ? dagenTussen(datum, nu) : 0;
       if (dagen >= AANDACHT_WERKBON_DAGEN) {
-        punten.push({ key: 'werkbonnen', id: w.id, titel: w.klant, dagen, icoon: 'fa-file-invoice', kleur: 'bg-purple-50 text-purple-600', tekst: `Werkbon van ${dagenTekst(dagen)} geleden, nog niet in Exact` });
+        punten.push({ key: 'werkbonnen', id: w.id, titel: w.klant, dagen, icoon: 'fa-file-invoice', kleur: 'bg-purple-50 text-purple-600', tekst: `Werkbon van ${dagenTekst(dagen)} geleden, nog niet verstuurd` });
       }
     });
 
