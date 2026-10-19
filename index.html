@@ -138,6 +138,9 @@
     <div class="flex-1 overflow-y-auto p-4 sm:p-6">
       <!-- DASHBOARD -->
       <div id="view-dashboard" class="view fade-in">
+        <div class="print-hide flex justify-end mb-4">
+          <button type="button" onclick="openUpdates()" class="relative bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-sm transition"><i class="fas fa-gift text-blue-600"></i><span>Wat is er nieuw?</span><span id="updates-badge" class="hidden absolute -top-2 -right-2 min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"></span></button>
+        </div>
         <div id="dash-aandacht" class="print-hide mb-6"></div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 mb-8">
           <div onclick="activateTab('klanten')" class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition cursor-pointer"><div class="flex items-center justify-between"><div><p class="text-sm text-slate-500 font-medium">Klanten</p><p id="stat-klanten" class="text-2xl font-bold text-slate-800">0</p></div><div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl"><i class="fas fa-users"></i></div></div></div>
@@ -409,6 +412,19 @@
     <div class="flex justify-end space-x-3 px-6 pb-6 pt-2 border-t border-slate-100 pt-4">
       <button type="button" onclick="closeModal('modal-detail')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition text-sm font-medium">Sluiten</button>
       <button type="button" id="modal-detail-edit" class="hidden px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm text-sm font-medium"><i class="fas fa-pen mr-1"></i>Bewerken</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-updates" class="modal-overlay fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+      <h3 class="text-lg font-semibold text-slate-800"><i class="fas fa-gift text-blue-600 mr-2"></i>Wat is er nieuw?</h3>
+      <button onclick="closeModal('modal-updates')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="modal-updates-body" class="p-6 space-y-6"></div>
+    <div class="flex justify-end px-6 pb-6 pt-4 border-t border-slate-100">
+      <button type="button" onclick="closeModal('modal-updates')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm text-sm font-medium">Begrepen</button>
     </div>
   </div>
 </div>
@@ -1016,7 +1032,9 @@
   });
 
   document.getElementById("logoutBtn").addEventListener("click", () => {
+    const updatesGelezen = gelezenUpdate();
     localStorage.clear();
+    if (updatesGelezen) localStorage.setItem('hc_updates_gelezen', updatesGelezen);
     location.reload();
   });
 
@@ -1785,6 +1803,7 @@
 
   function renderDashboard() {
     renderAandacht();
+    renderUpdatesBadge();
 
     document.querySelectorAll('.dash-periode').forEach(b => {
       const actief = b.dataset.periode === dashPeriode;
@@ -1911,6 +1930,54 @@
         </div>
         <span class="text-xs text-slate-500 text-center mt-1.5">${MAANDEN_KORT[m.maand]}</span>
       </div>`).join('');
+  }
+
+  // ==========================================
+  // WAT IS ER NIEUW (nieuwste update bovenaan)
+  // ==========================================
+  const UPDATES = [
+    {
+      id: '2026-10-19',
+      titel: 'Update 19 oktober',
+      punten: [
+        { icoon: 'fa-bell', titel: 'Hier moet iemand naar kijken', tekst: 'Bovenaan het dashboard staan storingen die al lang openstaan, storingen waar nog teruggekomen moet worden en werkbonnen die al een paar dagen niet verstuurd zijn. Klik erop om ze te openen.' },
+        { icoon: 'fa-chart-column', titel: 'Cijfers en grafieken', tekst: 'Op het dashboard zie je hoeveel storingen en werkbonnen er waren, wie de meeste werkbonnen heeft gedaan, hoe snel storingen zijn afgerond en welke klanten de meeste storingen hebben. Kies bovenaan de periode.' },
+        { icoon: 'fa-layer-group', titel: 'Werkbonnen samengevoegd', tekst: 'Zijn er meerdere werkbonnen voor dezelfde klus, dan staan ze bij Werkbonnen in één kaart. Klik op een regel om die ene werkbon te bekijken.' },
+        { icoon: 'fa-link', titel: 'Werkbon hoort bij een werkzaamheid', tekst: 'In het werkbonformulier staat het veld "Hoort bij werkzaamheid". Via "Werkbon maken" wordt het vanzelf ingevuld. Oudere werkbonnen kun je via Bewerken alsnog koppelen.' }
+      ]
+    }
+  ];
+
+  function gelezenUpdate() {
+    try { return localStorage.getItem('hc_updates_gelezen'); } catch (e) { return null; }
+  }
+
+  function renderUpdatesBadge() {
+    const gelezenIdx = UPDATES.findIndex(u => u.id === gelezenUpdate());
+    const nieuw = gelezenIdx === -1 ? UPDATES.length : gelezenIdx;
+    const badge = document.getElementById('updates-badge');
+    badge.textContent = nieuw;
+    badge.classList.toggle('hidden', !nieuw);
+  }
+
+  function openUpdates() {
+    document.getElementById('modal-updates-body').innerHTML = UPDATES.map(u => `
+      <div>
+        <p class="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">${u.titel}</p>
+        <div class="space-y-4">
+          ${u.punten.map(p => `
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0"><i class="fas ${p.icoon} text-sm"></i></div>
+            <div class="min-w-0">
+              <p class="font-medium text-slate-800">${p.titel}</p>
+              <p class="text-sm text-slate-600 mt-0.5 leading-relaxed">${p.tekst}</p>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`).join('');
+    try { localStorage.setItem('hc_updates_gelezen', UPDATES[0].id); } catch (e) {}
+    renderUpdatesBadge();
+    openModal('modal-updates');
   }
 
   function renderKlantenSuggesties() {
