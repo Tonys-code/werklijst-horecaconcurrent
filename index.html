@@ -811,6 +811,8 @@
     loginScreen.style.display = "none";
     appContainer.classList.remove("hidden");
     setTimeout(() => appContainer.classList.remove("opacity-0"), 20);
+    // Nieuwe update nog niet gezien: uitleg één keer vanzelf tonen
+    if (gelezenUpdate() !== UPDATES[0].id) setTimeout(openUpdates, 600);
   }
 
   function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
@@ -2406,8 +2408,8 @@
   // ==========================================
   const UPDATES = [
     {
-      id: '2026-10-19',
-      titel: 'Update 19 oktober',
+      id: '2026-10-20',
+      titel: 'Update 20 oktober',
       punten: [
         { icoon: 'fa-table-columns', titel: 'Werkbord', tekst: 'Nieuw in het menu: alle storingen op één bord in vier kolommen: Open, In behandeling, Afgerond en Verstuurd. Sleep een kaart naar de volgende kolom, of tik erop en kies bovenin de stap. In de kaart zie je de werkbonnen en maak je er meteen een bij. Na de eerste werkbon gaat de storing vanzelf naar In behandeling.' },
         { icoon: 'fa-bell', titel: 'Hier moet iemand naar kijken', tekst: 'Bovenaan het dashboard staan storingen die al lang openstaan, storingen waar nog teruggekomen moet worden en werkbonnen die al een paar dagen niet verstuurd zijn. Klik erop om ze te openen.' },
