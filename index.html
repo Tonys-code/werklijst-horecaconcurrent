@@ -234,7 +234,7 @@
       <!-- DASHBOARD -->
       <div id="view-dashboard" class="view fade-in">
         <div class="print-hide flex justify-end mb-4">
-          <button type="button" onclick="openUpdates()" class="relative bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-sm transition"><i class="fas fa-gift text-blue-600"></i><span>Wat is er nieuw?</span><span id="updates-badge" class="hidden absolute -top-2 -right-2 min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"></span></button>
+          <button type="button" onclick="openUpdates()" class="relative bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-sm transition"><i class="fas fa-gift text-blue-600"></i><span>Wat is er nieuw?</span><span class="updates-badge hidden absolute -top-2 -right-2 min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"></span></button>
         </div>
         <div id="dash-aandacht" class="print-hide mb-6"></div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 mb-8">
@@ -371,7 +371,10 @@
       <div id="view-openstaand" class="view hidden">
         <div class="print-hide bg-white rounded-xl border border-slate-100 shadow-sm px-4 sm:px-6 py-3 mb-4 flex items-center justify-between gap-3 flex-wrap">
           <p id="openstaand-hint" class="text-sm text-slate-600"><i class="fas fa-grip-vertical text-slate-400 mr-2"></i>Sleep een rij om de volgorde te wijzigen</p>
-          <button type="button" id="openstaand-sort-btn" onclick="toggleOpenstaandSort()" class="text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 hover:bg-slate-50 transition flex-shrink-0"><i class="fas fa-sort"></i><span>Sorteer op datum</span></button>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <button type="button" onclick="openUpdates()" class="relative text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 hover:bg-slate-50 transition"><i class="fas fa-gift text-blue-600"></i><span>Wat is er nieuw?</span><span class="updates-badge hidden absolute -top-2 -right-2 min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"></span></button>
+            <button type="button" id="openstaand-sort-btn" onclick="toggleOpenstaandSort()" class="text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 hover:bg-slate-50 transition flex-shrink-0"><i class="fas fa-sort"></i><span>Sorteer op datum</span></button>
+          </div>
         </div>
         <div id="tbody-openstaand" class="space-y-3"></div>
       </div>
@@ -2423,9 +2426,10 @@
   function renderUpdatesBadge() {
     const gelezenIdx = UPDATES.findIndex(u => u.id === gelezenUpdate());
     const nieuw = gelezenIdx === -1 ? UPDATES.length : gelezenIdx;
-    const badge = document.getElementById('updates-badge');
-    badge.textContent = nieuw;
-    badge.classList.toggle('hidden', !nieuw);
+    document.querySelectorAll('.updates-badge').forEach(badge => {
+      badge.textContent = nieuw;
+      badge.classList.toggle('hidden', !nieuw);
+    });
   }
 
   function openUpdates() {
