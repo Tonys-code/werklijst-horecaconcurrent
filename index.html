@@ -54,6 +54,94 @@
     .action-btn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; font-size: 15px; transition: background-color .15s; }
     .action-btn:hover { background-color: #f1f5f9; }
 
+    /* ---------- Werkbord ---------- */
+    .kb-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .kb-zoek { position: relative; width: 280px; }
+    .kb-zoek i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 13px; }
+    .kb-zoek input { width: 100%; height: 38px; border: 1px solid #e2e8f0; background: #fff; border-radius: 10px; padding: 0 12px 0 34px; outline: none; font-size: 14px; }
+    .kb-zoek input:focus { border-color: #b9c7e6; box-shadow: 0 0 0 3px #eef1f9; }
+    .kb-tabs { display: none; }
+    .kb-board { height: calc(100dvh - 73px - 48px - 54px); min-height: 420px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .kb-col { display: flex; flex-direction: column; min-height: 0; background: #eaeef5; border-radius: 16px; }
+    .kb-col-head { display: flex; align-items: center; gap: 8px; height: 50px; padding: 4px 12px 0 16px; flex-shrink: 0; }
+    .kb-col-head h3 { margin: 0; font-size: 14px; font-weight: 700; color: #0f172a; }
+    .kb-col-head small { font-size: 12px; color: #94a3b8; font-weight: 500; }
+    .kb-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+    .kb-count { margin-left: auto; font-size: 12px; font-weight: 600; color: #64748b; background: rgba(255,255,255,.7); border-radius: 99px; padding: 1px 9px; }
+    .kb-body { flex: 1; overflow-y: auto; padding: 4px 10px 10px; display: flex; flex-direction: column; gap: 8px; min-height: 80px; }
+    .kb-leeg { color: #94a3b8; font-size: 13px; text-align: center; padding: 28px 8px; border: 1.5px dashed #d3d9e4; border-radius: 12px; }
+    .kb-meer { margin: 0 10px 10px; padding: 8px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #64748b; }
+    .kb-meer:hover { background: rgba(255,255,255,.7); color: #0f172a; }
+    .kb-card { background: #fff; border-radius: 12px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(15,23,42,.06); border: 1px solid transparent; cursor: pointer; transition: box-shadow .15s, border-color .15s; user-select: none; }
+    .kb-card:hover { box-shadow: 0 6px 18px rgba(15,23,42,.08); border-color: #e5e8ef; }
+    .kb-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .kb-card h4 { margin: 0; font-size: 14.5px; font-weight: 650; color: #0f172a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .kb-card p { margin: 4px 0 0; font-size: 13.5px; color: #334155; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .kb-tijd { font-size: 12px; font-weight: 600; color: #94a3b8; white-space: nowrap; flex-shrink: 0; padding-top: 1px; }
+    .kb-tijd.warn { color: #dc2626; }
+    .kb-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .kb-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; border-radius: 7px; padding: 3px 8px; background: #f3f5f9; color: #64748b; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .kb-tag.amber { background: #fff7e6; color: #b45309; }
+    .kb-tag.green { background: #effaf0; color: #3f7d1e; }
+    .kb-tag.purple { background: #f4f0ff; color: #6d3fd6; }
+    .kb-board .sortable-drag { box-shadow: 0 12px 28px rgba(15,23,42,.18) !important; transform: rotate(1.5deg); }
+
+    .kb-scrim { position: fixed; inset: 0; background: rgba(15,23,42,.35); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 35; }
+    .kb-scrim.open { opacity: 1; pointer-events: auto; }
+    .kb-sheet { position: fixed; top: 0; right: 0; bottom: 0; width: 460px; max-width: 100%; background: #fff; z-index: 40; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s cubic-bezier(.2,.8,.2,1); box-shadow: -12px 0 32px rgba(15,23,42,.12); }
+    .kb-sheet.open { transform: none; }
+    .kb-grip { display: none; }
+    .kb-sheet-head { display: flex; align-items: flex-start; gap: 8px; padding: 18px 20px 14px; border-bottom: 1px solid #e5e8ef; }
+    .kb-sheet-head h3 { margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; }
+    .kb-sheet-head p { margin: 2px 0 0; font-size: 13px; color: #64748b; }
+    .kb-sheet-body { flex: 1; overflow-y: auto; padding: 18px 20px 24px; }
+    .kb-icon { width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; color: #64748b; flex-shrink: 0; }
+    .kb-icon:hover { background: #f3f5f9; color: #0f172a; }
+    .kb-stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: #f3f5f9; padding: 4px; border-radius: 12px; margin-bottom: 18px; }
+    .kb-stepper button { height: 34px; border-radius: 9px; font-size: 13px; font-weight: 600; color: #64748b; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .kb-stepper button:hover { color: #0f172a; }
+    .kb-stepper button.actief { background: #fff; color: #0f172a; box-shadow: 0 1px 2px rgba(15,23,42,.06); }
+    .kb-todo { margin: 0; font-size: 15px; color: #0f172a; white-space: pre-wrap; }
+    .kb-note { margin: 10px 0 0; font-size: 13.5px; color: #b45309; display: flex; gap: 8px; }
+    .kb-onderdeel { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: #f4f0ff; color: #6d3fd6; font-size: 13.5px; font-weight: 600; }
+    .kb-onderdeel.binnen { background: #effaf0; color: #3f7d1e; }
+    .kb-onderdeel span { flex: 1; min-width: 0; }
+    .kb-onderdeel button { font-size: 12.5px; font-weight: 700; background: #fff; border-radius: 8px; padding: 5px 10px; white-space: nowrap; }
+    .kb-sec { margin: 24px 0 10px; font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .4px; }
+    .kb-wb { border: 1px solid #e5e8ef; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: .15s; }
+    .kb-wb:hover { border-color: #c9d2e3; background: #fbfcfe; }
+    .kb-wb-top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: #0f172a; }
+    .kb-wb-top b { font-weight: 650; }
+    .kb-wb-top span { color: #64748b; white-space: nowrap; }
+    .kb-wb p { margin: 4px 0 0; font-size: 13.5px; color: #334155; }
+    .kb-wb .kb-tags { margin-top: 8px; }
+    .kb-geen { font-size: 13.5px; color: #94a3b8; margin: 0 0 12px; }
+    .kb-add { width: 100%; height: 46px; border-radius: 10px; background: #eef1f9; color: #264489; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .kb-add:hover { background: #dce3f3; }
+    .kb-toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); background: #13234a; color: #fff; border-radius: 12px; padding: 10px 10px 10px 16px; display: flex; align-items: center; gap: 14px; font-size: 14px; box-shadow: 0 10px 30px rgba(15,23,42,.25); opacity: 0; pointer-events: none; transition: .2s; z-index: 70; max-width: calc(100vw - 32px); }
+    .kb-toast.toon { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+    .kb-toast button { color: #a2d265; font-weight: 700; padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
+
+    @media (max-width: 767px) {
+      .kb-toolbar { margin-bottom: 10px; }
+      .kb-zoek { width: 100%; }
+      .kb-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 10px; }
+      .kb-tabs button { height: 44px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 11.5px; font-weight: 600; color: #64748b; }
+      .kb-tabs button b { font-size: 15px; color: #0f172a; display: inline-flex; align-items: center; gap: 5px; }
+      .kb-tabs button.actief { background: #fff; color: #0f172a; box-shadow: 0 1px 2px rgba(15,23,42,.06); }
+      .kb-board { height: calc(100dvh - 69px - 32px - 48px - 54px); min-height: 360px; display: flex; gap: 10px; margin: 0 -16px; padding: 0 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+      .kb-board::-webkit-scrollbar { display: none; }
+      .kb-col { flex: 0 0 calc(100vw - 40px); scroll-snap-align: center; }
+      .kb-card { padding: 14px; }
+      .kb-sheet { top: auto; left: 0; width: 100%; height: 92dvh; border-radius: 20px 20px 0 0; transform: translateY(100%); box-shadow: 0 -12px 32px rgba(15,23,42,.15); }
+      .kb-sheet.open { transform: none; }
+      .kb-grip { display: block; width: 40px; height: 5px; border-radius: 99px; background: #d5dbe5; margin: 8px auto 0; }
+      .kb-sheet-head { padding: 12px 16px; }
+      .kb-sheet-body { padding: 16px; }
+      .kb-stepper button { font-size: 12.5px; }
+      .kb-stepper .kb-dot { display: none; }
+    }
+
     @media print {
       #loginScreen, #sidebar, header, .modal-overlay, .print-hide, #lightbox { display: none !important; }
       html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
@@ -109,6 +197,7 @@
     </div>
     <nav class="flex-1 overflow-y-auto p-4 space-y-1">
       <a href="#" class="nav-link active flex items-center space-x-3 px-4 py-3 rounded-lg bg-slate-800 text-blue-400 transition" data-tab="dashboard"><i class="fas fa-th-large w-5"></i><span>Dashboard</span></a>
+      <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="werkbord"><i class="fas fa-table-columns w-5"></i><span>Werkbord</span></a>
       <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="openstaand"><i class="fas fa-tasks w-5"></i><span>Openstaand</span></a>
       <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="afgerond"><i class="fas fa-check-circle w-5"></i><span>Afgerond</span></a>
       <a href="#" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-slate-300 transition" data-tab="bestellingen"><i class="fas fa-box w-5"></i><span>Bestellingen</span></a>
@@ -200,6 +289,15 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- WERKBORD -->
+      <div id="view-werkbord" class="view hidden print-hide">
+        <div class="kb-toolbar">
+          <div class="kb-zoek"><i class="fas fa-search"></i><input id="kb-zoek" type="search" placeholder="Zoek klant of klus" oninput="renderWerkbord()"></div>
+        </div>
+        <div class="kb-tabs" id="kb-tabs"></div>
+        <div class="kb-board" id="kb-board"></div>
       </div>
 
       <!-- KLANTEN -->
@@ -429,6 +527,10 @@
     </div>
   </div>
 </div>
+
+<div class="kb-scrim print-hide" id="kb-scrim" onclick="kbSluit()"></div>
+<aside class="kb-sheet print-hide" id="kb-sheet"></aside>
+<div class="kb-toast print-hide" id="kb-toast"></div>
 
 <div id="lightbox" class="fixed inset-0 bg-black/90 z-[60] hidden items-center justify-center p-4" onclick="closeLightbox()">
   <img id="lightbox-img" src="" class="max-w-full max-h-full rounded-lg" alt="">
@@ -1017,7 +1119,7 @@
   }
 
   function createWerkbonFromOpen(id) {
-    const item = state.openstaand.find(i => i.id === id);
+    const item = werkzaamheidById(id);
     if (!item) return;
     editing = { key: null, id: null };
     const f = document.getElementById("form-werkbon");
@@ -1080,7 +1182,7 @@
 
   document.getElementById("addBtn").addEventListener("click", () => {
     editing = { key: null, id: null };
-    if(["openstaand", "dashboard", "afgerond"].includes(currentView)) {
+    if(["openstaand", "dashboard", "afgerond", "werkbord"].includes(currentView)) {
       const f = document.getElementById("form-werkzaamheid");
       f.reset();
       f.datum.value = new Date().toISOString().slice(0, 10);
@@ -1222,6 +1324,10 @@
         if (oIdx > -1) {
           await fsUpdate("openstaand", data.werkzaamheidId, { vervolgStatus: vervolgactie });
           state.openstaand[oIdx].vervolgStatus = vervolgactie;
+          if (currentView === "werkbord" && vervolgactie === "Geen") {
+            const wid = data.werkzaamheidId;
+            kbToast("Klus is af. Naar Afgerond?", "Verplaatsen", () => kbZetFase(wid, "afgerond"));
+          }
         }
       }
       await ensureKlantExists(data.klant);
@@ -1677,7 +1783,292 @@
     renderKlanten();
     if (currentKlantId) renderKlantDetail();
     renderDashboard();
+    renderWerkbord();
     initSortable();
+  }
+
+  // ==========================================
+  // WERKBORD
+  // ==========================================
+  // Een werkzaamheid staat in één van vier fases. Die volgt uit de bestaande lijsten:
+  //   open      = in Openstaand, zonder werkbon
+  //   bezig     = in Openstaand, met werkbon (of handmatig hierheen gesleept: veld fase = 'bezig')
+  //   afgerond  = in Afgerond
+  //   verstuurd = in Afgerond en al zijn werkbonnen staan bij Verstuurd
+  const KB_FASES = [
+    { fase: 'open', titel: 'Open', lang: 'Open storingen', kleur: '#f59e0b' },
+    { fase: 'bezig', titel: 'Bezig', lang: 'In behandeling', kleur: '#3a5798' },
+    { fase: 'afgerond', titel: 'Afgerond', lang: 'Afgerond', kleur: '#7fb73f' },
+    { fase: 'verstuurd', titel: 'Verstuurd', lang: 'Verstuurd', kleur: '#8b5cf6' }
+  ];
+  const KB_RECENT_DAGEN = 30;   // Afgerond en Verstuurd tonen alleen de laatste 30 dagen
+  const KB_INGEKLAPT = 6;       // ...en daarvan eerst de nieuwste 6
+  let kbToonAlles = {};
+  let kbSortables = [];
+  let kbOpenId = null;
+  let kbToastTimer = null;
+
+  function kbWerkbonnen(id) {
+    return [
+      ...state.werkbonnen.filter(w => w.werkzaamheidId === id).map(item => ({ key: 'werkbonnen', item })),
+      ...state.verstuurd.filter(w => w.werkzaamheidId === id).map(item => ({ key: 'verstuurd', item }))
+    ].sort((a, b) => (a.item.datum || '').localeCompare(b.item.datum || ''));
+  }
+
+  function kbFase(id) {
+    const bonnen = kbWerkbonnen(id);
+    const open = state.openstaand.find(i => i.id === id);
+    if (open) return bonnen.length || open.fase === 'bezig' ? 'bezig' : 'open';
+    if (state.afgerond.some(i => i.id === id)) return bonnen.length && bonnen.every(b => b.key === 'verstuurd') ? 'verstuurd' : 'afgerond';
+    return null;
+  }
+
+  function kbDatum(id, fase) {
+    if (fase === 'verstuurd') {
+      const ts = Math.max(0, ...kbWerkbonnen(id).map(b => b.item.verstuurdTs || 0));
+      return ts ? new Date(ts) : afgerondDatum(werkzaamheidById(id));
+    }
+    return afgerondDatum(werkzaamheidById(id));
+  }
+
+  function kbDatumKort(d) {
+    if (!d) return '';
+    const n = dagenTussen(d, new Date());
+    if (n === 0) return 'vandaag';
+    if (n === 1) return 'gisteren';
+    return `${d.getDate()} ${MAANDEN_KORT[d.getMonth()]}`;
+  }
+
+  function kbZichtbaar(i) {
+    const q = (document.getElementById('kb-zoek').value || '').trim().toLowerCase();
+    return !q || [i.klant, i.locatie, i.todo].some(v => (v || '').toLowerCase().includes(q));
+  }
+
+  function kbKaarten(fase) {
+    if (fase === 'open' || fase === 'bezig') {
+      return state.openstaand.filter(i => kbFase(i.id) === fase && kbZichtbaar(i));
+    }
+    const grens = Date.now() - KB_RECENT_DAGEN * 86400000;
+    return state.afgerond
+      .filter(i => kbFase(i.id) === fase && kbZichtbaar(i))
+      .map(i => ({ i, d: kbDatum(i.id, fase) }))
+      .filter(x => x.d && x.d.getTime() >= grens)
+      .sort((a, b) => b.d - a.d)
+      .map(x => x.i);
+  }
+
+  function kbTags(i, fase) {
+    const tags = [];
+    const bonnen = kbWerkbonnen(i.id);
+    if (fase === 'bezig') {
+      const bestellingen = bestellingenVan(i.id);
+      const laatste = bonnen.length ? bonnen[bonnen.length - 1].item : null;
+      if (bestellingen.some(b => b.status !== 'Ontvangen')) tags.push(`<span class="kb-tag purple"><i class="fas fa-box"></i>Wacht op onderdeel</span>`);
+      else if (bestellingen.length) tags.push(`<span class="kb-tag green"><i class="fas fa-box"></i>Onderdeel binnen</span>`);
+      else if (laatste && laatste.vervolgactie === 'Terugkomen') tags.push(`<span class="kb-tag amber"><i class="fas fa-rotate-left"></i>Terugkomen</span>`);
+      else if (laatste && laatste.vervolgactie === 'Geen') tags.push(`<span class="kb-tag green"><i class="fas fa-check"></i>Klus af</span>`);
+    }
+    if (bonnen.length) tags.push(`<span class="kb-tag"><i class="fas fa-file-invoice"></i>${bonnen.length}</span>`);
+    if (bonnen.length && fase === 'bezig') {
+      const monteurs = [...new Set(bonnen.flatMap(b => (b.item.monteurs || '').split(',').map(m => m.trim()).filter(Boolean)))];
+      if (monteurs.length) tags.push(`<span class="kb-tag"><i class="fas fa-user"></i>${esc(monteurs.join(', '))}</span>`);
+    }
+    return tags.length ? `<div class="kb-tags">${tags.join('')}</div>` : '';
+  }
+
+  function kbKaart(i, fase) {
+    const actief = fase === 'open' || fase === 'bezig';
+    const gemeld = parseIsoDatum(i.datum);
+    const dagen = gemeld ? dagenTussen(gemeld, new Date()) : null;
+    const tijd = actief ? (dagen === null ? '' : dagen === 0 ? 'vandaag' : `${dagen} d`) : kbDatumKort(kbDatum(i.id, fase));
+    return `
+      <div class="kb-card" data-id="${i.id}" onclick="kbOpen('${i.id}')">
+        <div class="kb-card-top">
+          <h4>${esc(i.klant || '-')}</h4>
+          <span class="kb-tijd ${actief && dagen >= AANDACHT_LANG_OPEN_DAGEN ? 'warn' : ''}">${tijd}</span>
+        </div>
+        <p>${esc(i.todo || '')}</p>
+        ${kbTags(i, fase)}
+      </div>`;
+  }
+
+  function renderWerkbord() {
+    const board = document.getElementById('kb-board');
+    if (!board) return;
+    const zoekt = (document.getElementById('kb-zoek').value || '').trim() !== '';
+    const perFase = {};
+    board.innerHTML = KB_FASES.map(f => {
+      const alle = kbKaarten(f.fase);
+      perFase[f.fase] = alle.length;
+      const inklappen = !zoekt && !kbToonAlles[f.fase] && (f.fase === 'afgerond' || f.fase === 'verstuurd') && alle.length > KB_INGEKLAPT;
+      const lijst = inklappen ? alle.slice(0, KB_INGEKLAPT) : alle;
+      return `
+        <section class="kb-col">
+          <div class="kb-col-head">
+            <span class="kb-dot" style="background:${f.kleur}"></span>
+            <h3>${f.lang}</h3>
+            ${f.fase === 'afgerond' || f.fase === 'verstuurd' ? `<small>${KB_RECENT_DAGEN} dagen</small>` : ''}
+            <span class="kb-count">${alle.length}</span>
+          </div>
+          <div class="kb-body" data-fase="${f.fase}">
+            ${lijst.length ? lijst.map(i => kbKaart(i, f.fase)).join('') : `<div class="kb-leeg">${zoekt ? 'Niets gevonden' : 'Sleep een kaart hierheen'}</div>`}
+          </div>
+          ${inklappen ? `<button class="kb-meer" onclick="kbToonAlles['${f.fase}']=true;renderWerkbord()">Toon alle ${alle.length}</button>` : ''}
+        </section>`;
+    }).join('');
+
+    document.getElementById('kb-tabs').innerHTML = KB_FASES.map((f, n) => `
+      <button onclick="kbNaarKolom(${n})"><b><span class="kb-dot" style="background:${f.kleur}"></span>${perFase[f.fase]}</b>${f.titel}</button>`).join('');
+    kbMarkeerTab();
+
+    kbSortables.forEach(x => x.destroy());
+    kbSortables = [...board.querySelectorAll('.kb-body')].map(el => Sortable.create(el, {
+      group: 'werkbord',
+      draggable: '.kb-card',
+      animation: 160,
+      delay: 180,
+      delayOnTouchOnly: true,
+      sort: false,
+      ghostClass: 'sortable-ghost',
+      onEnd: evt => {
+        if (evt.from === evt.to) return;
+        kbZetFase(evt.item.dataset.id, evt.to.dataset.fase);
+      }
+    }));
+
+    if (kbOpenId) kbRenderSheet();
+  }
+
+  async function kbZetFase(id, naar, undo = true) {
+    const van = kbFase(id);
+    if (!van || van === naar) { renderWerkbord(); return; }
+    const heeftWerkbon = kbWerkbonnen(id).length > 0;
+    if (naar === 'open' && heeftWerkbon) {
+      kbToast('Een storing met een werkbon kan niet terug naar Open. Kies In behandeling.');
+      renderWerkbord();
+      return;
+    }
+    if (naar === 'verstuurd' && !heeftWerkbon) {
+      kbToast('Maak eerst een werkbon voordat je hem verstuurt.');
+      renderWerkbord();
+      return;
+    }
+
+    const moetOpen = naar === 'open' || naar === 'bezig';
+    if (moetOpen && van !== 'open' && van !== 'bezig') await restoreAfgerond(id);
+    if (!moetOpen && (van === 'open' || van === 'bezig')) await moveToAfgerond(id);
+    if (naar === 'verstuurd') {
+      for (const w of state.werkbonnen.filter(w => w.werkzaamheidId === id)) await moveToVerstuurd(w.id);
+    } else if (van === 'verstuurd') {
+      for (const w of state.verstuurd.filter(w => w.werkzaamheidId === id)) await restoreWerkbon(w.id);
+    }
+    const open = state.openstaand.find(i => i.id === id);
+    if (open && (open.fase || '') !== (naar === 'bezig' ? 'bezig' : '')) {
+      open.fase = naar === 'bezig' ? 'bezig' : '';
+      try { await fsUpdate('openstaand', id, { fase: open.fase }); } catch (e) { alert('Opslaan mislukt'); }
+    }
+    renderAll();
+
+    if (kbFase(id) !== naar) return;   // verplaatsen is mislukt; de melding kwam al
+    if (undo) {
+      const item = werkzaamheidById(id);
+      const titel = KB_FASES.find(f => f.fase === naar).lang;
+      kbToast(`${item ? item.klant : 'Storing'} staat nu bij ${titel}.`, 'Ongedaan maken', () => kbZetFase(id, van, false));
+    }
+  }
+
+  // ---------- Mobiel: kolommen als tabs ----------
+  function kbNaarKolom(n) {
+    const board = document.getElementById('kb-board');
+    const col = board.querySelectorAll('.kb-col')[n];
+    board.scrollTo({ left: col.offsetLeft - board.offsetLeft - (board.clientWidth - col.clientWidth) / 2, behavior: 'smooth' });
+  }
+  function kbMarkeerTab() {
+    const board = document.getElementById('kb-board');
+    const cols = [...board.querySelectorAll('.kb-col')];
+    const midden = board.scrollLeft + board.clientWidth / 2;
+    let actief = 0;
+    cols.forEach((c, n) => { if (c.offsetLeft - board.offsetLeft <= midden) actief = n; });
+    document.querySelectorAll('#kb-tabs button').forEach((b, n) => b.classList.toggle('actief', n === actief));
+  }
+  document.getElementById('kb-board').addEventListener('scroll', kbMarkeerTab, { passive: true });
+
+  // ---------- Paneel met de werkzaamheid en zijn werkbonnen ----------
+  function kbOpen(id) {
+    kbOpenId = id;
+    kbRenderSheet();
+    document.getElementById('kb-sheet').classList.add('open');
+    document.getElementById('kb-scrim').classList.add('open');
+  }
+  function kbSluit() {
+    kbOpenId = null;
+    document.getElementById('kb-sheet').classList.remove('open');
+    document.getElementById('kb-scrim').classList.remove('open');
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && kbOpenId && document.querySelectorAll('.modal-overlay:not(.hidden)').length === 0) kbSluit();
+  });
+
+  function kbRenderSheet() {
+    const i = werkzaamheidById(kbOpenId);
+    const fase = kbFase(kbOpenId);
+    if (!i || !fase) { kbSluit(); return; }
+    const isOpen = fase === 'open' || fase === 'bezig';
+    const sub = [i.locatie, i.datum ? `gemeld ${kbDatumKort(parseIsoDatum(i.datum))}` : ''].filter(Boolean).map(esc).join(' · ');
+    const bonnen = kbWerkbonnen(i.id);
+    const bestellingen = bestellingenVan(i.id);
+    document.getElementById('kb-sheet').innerHTML = `
+      <div class="kb-grip"></div>
+      <div class="kb-sheet-head">
+        <div class="min-w-0 flex-1"><h3>${esc(i.klant || '-')}</h3><p>${sub}</p></div>
+        ${isOpen ? `<button class="kb-icon" onclick="openEditModal('openstaand','${i.id}')" title="Bewerken"><i class="fas fa-pen"></i></button>` : ''}
+        <button class="kb-icon" onclick="kbSluit()" title="Sluiten"><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="kb-sheet-body">
+        <div class="kb-stepper">
+          ${KB_FASES.map(f => `<button class="${fase === f.fase ? 'actief' : ''}" onclick="kbZetFase('${i.id}','${f.fase}')"><span class="kb-dot" style="background:${f.kleur}"></span>${f.titel}</button>`).join('')}
+        </div>
+        <p class="kb-todo">${esc(i.todo || '')}</p>
+        ${i.note ? `<p class="kb-note"><i class="fas fa-triangle-exclamation" style="margin-top:3px"></i><span>${esc(i.note)}</span></p>` : ''}
+        ${bestellingen.map(b => `
+          <div class="kb-onderdeel ${b.status === 'Ontvangen' ? 'binnen' : ''}">
+            <i class="fas fa-box"></i>
+            <span>${esc(b.onderdeel || 'Onderdeel')} · ${esc(b.status || '')}</span>
+            ${b.status !== 'Ontvangen' ? `<button onclick="kbOnderdeelBinnen('${b.id}')">Is binnen</button>` : ''}
+          </div>`).join('')}
+
+        <div class="kb-sec">Werkbonnen</div>
+        ${bonnen.length ? bonnen.map(({ key, item: w }) => `
+          <div class="kb-wb" onclick="openDetail('${key}','${w.id}')">
+            <div class="kb-wb-top"><b>${kbDatumKort(parseIsoDatum(w.datum)) || '-'}${w.monteurs ? ` · ${esc(w.monteurs)}` : ''}</b><span>${esc(w.werktijd || '')}</span></div>
+            ${w.omschrijving ? `<p>${esc(w.omschrijving)}</p>` : ''}
+            <div class="kb-tags">
+              ${w.vervolgactie ? `<span class="kb-tag ${w.vervolgactie === 'Terugkomen' ? 'amber' : w.vervolgactie === 'Bestellen' ? 'purple' : 'green'}">${w.vervolgactie === 'Geen' ? 'Klus af' : w.vervolgactie === 'Bestellen' ? 'Onderdeel bestellen' : esc(w.vervolgactie)}</span>` : ''}
+              ${key === 'verstuurd' ? `<span class="kb-tag"><i class="fas fa-paper-plane"></i>Verstuurd</span>` : ''}
+            </div>
+          </div>`).join('') : `<p class="kb-geen">Nog geen werkbon.</p>`}
+        <button class="kb-add" onclick="createWerkbonFromOpen('${i.id}')"><i class="fas fa-plus"></i>Werkbon toevoegen</button>
+      </div>`;
+  }
+
+  async function kbOnderdeelBinnen(bestellingId) {
+    try {
+      await fsUpdate('bestellingen', bestellingId, { status: 'Ontvangen' });
+      const b = state.bestellingen.find(x => x.id === bestellingId);
+      if (b) b.status = 'Ontvangen';
+      renderAll();
+    } catch (e) {
+      alert('Opslaan mislukt');
+    }
+  }
+
+  function kbToast(tekst, actieLabel, actie) {
+    const el = document.getElementById('kb-toast');
+    el.innerHTML = `<span>${esc(tekst)}</span>${actieLabel ? `<button type="button">${esc(actieLabel)}</button>` : ''}`;
+    if (actieLabel) el.querySelector('button').onclick = () => { el.classList.remove('toon'); actie(); };
+    el.classList.add('toon');
+    clearTimeout(kbToastTimer);
+    kbToastTimer = setTimeout(() => el.classList.remove('toon'), actieLabel ? 6000 : 3000);
   }
 
   // ==========================================
@@ -1967,6 +2358,7 @@
       id: '2026-10-19',
       titel: 'Update 19 oktober',
       punten: [
+        { icoon: 'fa-table-columns', titel: 'Werkbord', tekst: 'Nieuw in het menu: alle storingen op één bord in vier kolommen: Open, In behandeling, Afgerond en Verstuurd. Sleep een kaart naar de volgende kolom, of tik erop en kies bovenin de stap. In de kaart zie je de werkbonnen en maak je er meteen een bij. Na de eerste werkbon gaat de storing vanzelf naar In behandeling.' },
         { icoon: 'fa-bell', titel: 'Hier moet iemand naar kijken', tekst: 'Bovenaan het dashboard staan storingen die al lang openstaan, storingen waar nog teruggekomen moet worden en werkbonnen die al een paar dagen niet verstuurd zijn. Klik erop om ze te openen.' },
         { icoon: 'fa-chart-column', titel: 'Cijfers en grafieken', tekst: 'Op het dashboard zie je hoeveel storingen en werkbonnen er waren, wie de meeste werkbonnen heeft gedaan, hoe snel storingen zijn afgerond en welke klanten de meeste storingen hebben. Kies bovenaan de periode.' },
         { icoon: 'fa-layer-group', titel: 'Werkbonnen samengevoegd', tekst: 'Zijn er meerdere werkbonnen voor dezelfde klus, dan staan ze bij Werkbonnen in één kaart. Klik op een regel om die ene werkbon te bekijken.' },
