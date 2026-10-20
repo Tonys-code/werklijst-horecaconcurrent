@@ -60,6 +60,10 @@
     .kb-zoek i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 13px; }
     .kb-zoek input { width: 100%; height: 38px; border: 1px solid #e2e8f0; background: #fff; border-radius: 10px; padding: 0 12px 0 34px; outline: none; font-size: 14px; }
     .kb-zoek input:focus { border-color: #b9c7e6; box-shadow: 0 0 0 3px #eef1f9; }
+    .kb-sort { position: relative; }
+    .kb-sort i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 13px; pointer-events: none; }
+    .kb-sort select { height: 38px; border: 1px solid #e2e8f0; background: #fff; border-radius: 10px; padding: 0 12px 0 32px; font-size: 14px; color: #334155; outline: none; cursor: pointer; }
+    .kb-sort select:focus { border-color: #b9c7e6; box-shadow: 0 0 0 3px #eef1f9; }
     .kb-tabs { display: none; }
     .kb-board { height: calc(100dvh - 73px - 48px - 54px); min-height: 420px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
     .kb-col { display: flex; flex-direction: column; min-height: 0; background: #eaeef5; border-radius: 16px; }
@@ -124,7 +128,9 @@
 
     @media (max-width: 767px) {
       .kb-toolbar { margin-bottom: 10px; }
-      .kb-zoek { width: 100%; }
+      .kb-zoek { width: auto; flex: 1; min-width: 0; }
+      .kb-sort select { width: 44px; padding: 0; color: transparent; }
+      .kb-sort i { left: 50%; transform: translate(-50%, -50%); }
       .kb-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 10px; }
       .kb-tabs button { height: 44px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 11.5px; font-weight: 600; color: #64748b; }
       .kb-tabs button b { font-size: 15px; color: #0f172a; display: inline-flex; align-items: center; gap: 5px; }
@@ -295,6 +301,15 @@
       <div id="view-werkbord" class="view hidden print-hide">
         <div class="kb-toolbar">
           <div class="kb-zoek"><i class="fas fa-search"></i><input id="kb-zoek" type="search" placeholder="Zoek klant of klus" oninput="renderWerkbord()"></div>
+          <div class="kb-sort" title="Sorteren">
+            <i class="fas fa-arrow-down-wide-short"></i>
+            <select id="kb-sort" onchange="kbSorteer(this.value)">
+              <option value="eigen">Eigen volgorde</option>
+              <option value="oud">Oudste melding eerst</option>
+              <option value="nieuw">Nieuwste melding eerst</option>
+              <option value="klant">Klant A–Z</option>
+            </select>
+          </div>
         </div>
         <div class="kb-tabs" id="kb-tabs"></div>
         <div class="kb-board" id="kb-board"></div>
@@ -1167,6 +1182,7 @@
     pageTitle.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
     document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
     document.getElementById(`view-${tab}`).classList.remove("hidden");
+    if (tab === "werkbord") kbMarkeerTab();
     if(window.innerWidth < 768) document.getElementById("sidebar").classList.add("-translate-x-full");
   }
 
@@ -1804,6 +1820,8 @@
   const KB_RECENT_DAGEN = 30;   // Afgerond en Verstuurd tonen alleen de laatste 30 dagen
   const KB_INGEKLAPT = 6;       // ...en daarvan eerst de nieuwste 6
   let kbToonAlles = {};
+  let kbSortering = 'eigen';
+  try { kbSortering = localStorage.getItem('hc_werkbord_sort') || 'eigen'; } catch (e) {}
   let kbSortables = [];
   let kbOpenId = null;
   let kbToastTimer = null;
@@ -1846,7 +1864,11 @@
 
   function kbKaarten(fase) {
     if (fase === 'open' || fase === 'bezig') {
-      return state.openstaand.filter(i => kbFase(i.id) === fase && kbZichtbaar(i));
+      const lijst = state.openstaand.filter(i => kbFase(i.id) === fase && kbZichtbaar(i));
+      if (kbSortering === 'oud') return lijst.sort((a, b) => (a.datum || '').localeCompare(b.datum || ''));
+      if (kbSortering === 'nieuw') return lijst.sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
+      if (kbSortering === 'klant') return lijst.sort((a, b) => (a.klant || '').localeCompare(b.klant || '', 'nl'));
+      return lijst.sort((a, b) => (a.volgorde || 0) - (b.volgorde || 0));
     }
     const grens = Date.now() - KB_RECENT_DAGEN * 86400000;
     return state.afgerond
@@ -1896,6 +1918,7 @@
     const board = document.getElementById('kb-board');
     if (!board) return;
     const zoekt = (document.getElementById('kb-zoek').value || '').trim() !== '';
+    document.getElementById('kb-sort').value = kbSortering;
     const perFase = {};
     board.innerHTML = KB_FASES.map(f => {
       const alle = kbKaarten(f.fase);
@@ -1928,15 +1951,39 @@
       animation: 160,
       delay: 180,
       delayOnTouchOnly: true,
-      sort: false,
+      sort: kbSortering === 'eigen' && (el.dataset.fase === 'open' || el.dataset.fase === 'bezig'),
       ghostClass: 'sortable-ghost',
       onEnd: evt => {
-        if (evt.from === evt.to) return;
-        kbZetFase(evt.item.dataset.id, evt.to.dataset.fase);
+        if (evt.from !== evt.to) kbZetFase(evt.item.dataset.id, evt.to.dataset.fase);
+        else if (evt.oldIndex !== evt.newIndex) kbHerorden(evt.to);
       }
     }));
 
     if (kbOpenId) kbRenderSheet();
+  }
+
+  function kbSorteer(waarde) {
+    kbSortering = waarde;
+    try { localStorage.setItem('hc_werkbord_sort', waarde); } catch (e) {}
+    renderWerkbord();
+  }
+
+  // Nieuwe volgorde binnen een kolom overnemen in de volgorde van Openstaand.
+  // Kaarten die door de zoekbalk verborgen zijn, houden hun plek.
+  async function kbHerorden(kolom) {
+    const nieuw = [...kolom.querySelectorAll('.kb-card')].map(k => k.dataset.id);
+    const lijst = [...state.openstaand].sort((a, b) => (a.volgorde || 0) - (b.volgorde || 0));
+    const plekken = lijst.map((i, n) => nieuw.includes(i.id) ? n : -1).filter(n => n > -1);
+    plekken.forEach((plek, n) => { lijst[plek] = state.openstaand.find(i => i.id === nieuw[n]); });
+    const gewijzigd = lijst.filter((i, n) => i.volgorde !== n);
+    lijst.forEach((i, n) => { i.volgorde = n; });
+    state.openstaand = lijst;
+    renderAll();
+    try {
+      await Promise.all(gewijzigd.map(i => fsUpdate('openstaand', i.id, { volgorde: i.volgorde })));
+    } catch (e) {
+      alert('Volgorde opslaan mislukt');
+    }
   }
 
   async function kbZetFase(id, naar, undo = true) {
@@ -1985,6 +2032,7 @@
   }
   function kbMarkeerTab() {
     const board = document.getElementById('kb-board');
+    if (!board.clientWidth) return;   // bord is (nog) verborgen
     const cols = [...board.querySelectorAll('.kb-col')];
     const midden = board.scrollLeft + board.clientWidth / 2;
     let actief = 0;
